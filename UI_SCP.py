@@ -1,3 +1,4 @@
+## In Colab install the following packages: ###################################
 #%pip install osmnx
 #%pip install dash
 #%pip install dash_leaflet
@@ -5,9 +6,10 @@
 #%pip install cplex
 #%pip install docplex
 #%pip install dash-loading-spinners
+###############################################################################
 
 """
-With Anaconda in a local pc, in your environment run:
+With Anaconda in a local pc, in your environment, run: ########################
 
 conda install spyder
 conda install pandas
@@ -21,6 +23,7 @@ pip install dash-loading-spinner
 conda install geopy
 pip install docplex
 pip install cplex
+###############################################################################
 """
 
 import dash
