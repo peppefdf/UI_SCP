@@ -402,7 +402,7 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       print('Total CO2 emissions: ',total_CO2)
 
       #print(coords_routes[0])
-      #return coords_routes
+      return coords_routes
 
 """
 LatsLons_routes = CalcRoutes_module(pts)

@@ -56,6 +56,17 @@ import diskcache
 cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
 
+
+# clean console ###############################################################
+try:
+    from IPython import get_ipython
+    get_ipython().magic('clear')
+    get_ipython().magic('reset -f')
+except:
+    pass
+###############################################################################
+
+
 #"/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/calcroutes_module.py"
 
 #im1 = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/CSL_logo.PNG'
@@ -204,7 +215,7 @@ app.layout = dbc.Container(
                Output('map','children',allow_duplicate=True)],
               [State('choose_buses',"value")],
               [State('internal-value_stops','data')],
-              [State('choose_CO2_lt','data')],
+              [State('choose_CO2_lt','value')],
               [Input("calc_routes", "n_clicks")],
               manager=long_callback_manager
               )
@@ -225,6 +236,8 @@ def calc_routes(Nroutes,Stops,CO2km,Nclick):
     print('\n')
     print('Start calculating routes...')
     routes_coords = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),float(CO2km))
+    print('Routes calculated!')
+    print(routes_coords)
     # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
     newMap = dl.Map([dl.TileLayer()] + markers,
@@ -243,7 +256,8 @@ def calc_routes(Nroutes,Stops,CO2km,Nclick):
               [Input("visualize_routes", "n_clicks")]
               )
 def visualize_route(Route,Stops,RoutesCoords,Nclick):
-    Route = int(Route.split(' ')[1])-1
+    #Route = int(Route.split(' ')[1])-1
+    Route = int(Route)-1    
     RoutesCoords = RoutesCoords[Route]
 
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
