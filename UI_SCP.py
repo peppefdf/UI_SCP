@@ -142,7 +142,7 @@ sidebar =  html.Div(
         html.Br(),        
         html.P([ html.Br(),'Liters of gasoline per kilometer'],id='gas_km',style={"margin-top": "15px","font-weight": "bold"}),
         dcc.Input(id="choose_gas_km", type="text", value='1.12'),
-        html.P([ html.Br(),'CO2 gr per lt'],id='CO2_lt',style={"margin-top": "15px","font-weight": "bold"}),
+        html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt',style={"margin-top": "15px","font-weight": "bold"}),
         dcc.Input(id="choose_CO2_lt (Kg/lt)", type="text", value='2.3'),        
         html.Div(id='outdata', style={"margin-top": "15px"}),
         dcc.Store(id='internal-value_stops', data=[]),
@@ -223,7 +223,7 @@ def calc_routes(Nroutes,Stops,Nclick):
     print('\n')
     print('\n')
     print('Start calculating routes...')
-    routes_coords = calcroutes_module.CalcRoutes_module(Stops)
+    routes_coords = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes))
     # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
     newMap = dl.Map([dl.TileLayer()] + markers,

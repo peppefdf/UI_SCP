@@ -63,7 +63,7 @@ selec_trip_id =  32402 # 13 pts -> just as an example, select the set of stops
 
 tol = 1.5
 tol_dist = 0.5 # % difference between longest and shortest route
-cont_limit = 40 # max number of iterations for convergence
+cont_limit = 100 # max number of iterations for convergence
 
 #CO2km = 1.12
 
@@ -143,7 +143,7 @@ for trip_id in Zubieta_routes['trip_id'].unique():
        pts = list(zip(trip_df['stop_lat'], trip_df['stop_lon']))
 """
 
-def CalcRoutes_module(puntos):
+def CalcRoutes_module(puntos,m_buses):
       ################################################
       # Calculando la matriz de distancias
       ################################################
