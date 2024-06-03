@@ -30,14 +30,14 @@ from geopy import distance # Biblioteca para calculos geograficos
 from geopy.geocoders import Nominatim
 from geopy.point import Point
 
-import folium
-from folium import PolyLine
-import matplotlib.pyplot as plt
+#import folium
+#from folium import PolyLine
+#import matplotlib.pyplot as plt
 
 import datetime
 
-from dash import Dash
-import dash_leaflet as dl
+#from dash import Dash
+#import dash_leaflet as dl
 
 #from google.colab import drive
 #drive.mount('/content/drive')
@@ -52,18 +52,20 @@ directory = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Proyecto Piloto
 #routes = pd.read_csv('/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Proyecto Piloto_Eskuzaitzeta/DATOS_GIPUZKOA/gtfs_Zubieta/gtfs/routes.txt', delimiter=',')
 
 
+"""
 # INPUTS
 m_buses = 3 # number of available buses-> affects quality of solution for the Asymm. mTSP
 #selec_trip_id = 32394  # 23 pts
 #selec_trip_id =  32566 # 8 pts
 selec_trip_id =  32402 # 13 pts -> just as an example, select the set of stops
 #selec_trip_id =  32404 # 18 pts -> just as an example, select the set of stops
+"""
 
 tol = 1.5
 tol_dist = 0.5 # % difference between longest and shortest route
 cont_limit = 40 # max number of iterations for convergence
 
-CO2km = 1.12
+#CO2km = 1.12
 
 def routes_list(A,m_b):
   ruta = {}
@@ -313,10 +315,10 @@ def CalcRoutes_module(puntos):
                 model.add_constraint(  ( (model.sum(C_max_list[ii]*x[x_max_list[ii][0],x_max_list[ii][1]] for ii in range(len(x_max_list))) - model.sum(C_min_list[ii]*x[x_min_list[ii][0],x_min_list[ii][1]] for ii in range(len(x_min_list)))) <= tol_dist*model.sum(C_max_list[ii]*x[x_max_list[ii][0],x_max_list[ii][1]] for ii in range(len(x_max_list))) ) )
                 #model.add_constraint(model.sum(C_max_list[ii]*x[x_max_list[ii][0],x_max_list[ii][1]] for ii in range(len(x_max_list))) <= 60 )
                 #model.add_constraint(model.sum(C_min_list[ii]*x[x_min_list[ii][0],x_min_list[ii][1]] for ii in range(len(x_min_list))) >= 1 )
-                print('indices max:')
-                print(x_max_list)
-                print('indices min:')
-                print(x_min_list)
+                #print('indices max:')
+                #print(x_max_list)
+                #print('indices min:')
+                #print(x_min_list)
 
                 try:
                     solution0 = model.solve(log_output=False)
@@ -399,8 +401,8 @@ def CalcRoutes_module(puntos):
       print()
       print('Total CO2 emissions: ',total_CO2)
 
-      print(coords_routes[0])
-      return coords_routes
+      #print(coords_routes[0])
+      #return coords_routes
 
 """
 LatsLons_routes = CalcRoutes_module(pts)
