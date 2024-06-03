@@ -40,8 +40,10 @@ import numpy as np
 #drive.mount('/content/drive',  force_remount=True)
 
 import sys
+
+root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
 #sys.path.append('/content/drive/MyDrive/Colab Notebooks')
-sys.path.append('C:/Users/gfotidellaf/Desktop/CSL_Gipuzkoa/Accessibility/assets')
+sys.path.append(root_dir + 'modules')
 #"/content/drive/MyDrive/Colab Notebooks/calcroutes_module.py"
 import calcroutes_module
 
@@ -57,12 +59,13 @@ long_callback_manager = DiskcacheLongCallbackManager(cache)
 #im2 = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/DFG_logo.png'
 #im1 = '/home/beppe23/mysite/assets/CSL_logo.PNG'
 #im2 = '/home/beppe23/mysite/assets/DFG_logo.png'
-im1 = 'C:/Users/gfotidellaf/Desktop/CSL_Gipuzkoa/Accessibility/assets/CSL_logo.PNG'
-im2 = 'C:/Users/gfotidellaf/Desktop/CSL_Gipuzkoa/Accessibility/assets/DFG_logo.png'
+im1 = root_dir +'images/CSL_logo.PNG'
+im2 = root_dir +'images/DFG_logo.png'
 
 #stops_file = "/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/GTFS_files_bus_stops_12_02_2024/all_stops_12_02_2024.csv"
 #stops_file = "/home/beppe23/mysite/assets/all_stops_12_02_2024.csv"
-stops_file = "C:/Users/gfotidellaf/Desktop/CSL_Gipuzkoa/Accessibility/assets/all_stops_12_02_2024.csv"
+#stops_file = "C:/Users/gfotidellaf/Desktop/CSL_Gipuzkoa/Accessibility/assets/all_stops_12_02_2024.csv"
+stops_file = root_dir +'data/all_stops_12_02_2024.csv'
 
 
 from PIL import Image
