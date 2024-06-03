@@ -242,7 +242,7 @@ def calc_routes(Nroutes,Stops,Nclick):
               [Input("visualize_routes", "n_clicks")]
               )
 def visualize_route(Route,Stops,RoutesCoords,Nclick):
-    Route = int(Route)-1
+    Route = int(Route.split(' ')[1])-1
     RoutesCoords = RoutesCoords[Route]
 
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
