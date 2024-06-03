@@ -137,6 +137,8 @@ mouse_over_mess = """
 Shifts stops to closest
 <p>existing bus stops</p>"""
 
+routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
+
 sidebar =  html.Div(
        [
         html.Button("Load stops from file", id="load_stops", n_clicks=0),
@@ -150,7 +152,7 @@ sidebar =  html.Div(
         dcc.Input(id="choose_buses", type="text", value='3'),
         html.Button("Calculate routes", id="calc_routes", n_clicks=0,style={"margin-top": "15px"}),
         html.P([ html.Br(),'Select route to visualize'],id='route_select',style={"margin-top": "15px", "font-weight": "bold"}),
-        dcc.Dropdown(["Route 1", "Route 2", "Route 3"], multi=False,style={"margin-top": "15px"},id='choose_route'),
+        dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route'),
         html.Button("Visualize routes", id="visualize_routes", n_clicks=0,style={"margin-top": "15px"}),
         html.Br(),        
         html.P([ html.Br(),'Liters of gasoline per kilometer'],id='gas_km',style={"margin-top": "15px","font-weight": "bold"}),
