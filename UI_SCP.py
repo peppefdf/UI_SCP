@@ -1,3 +1,4 @@
+## In Colab install the following packages: ###################################
 #%pip install osmnx
 #%pip install dash
 #%pip install dash_leaflet
@@ -5,9 +6,10 @@
 #%pip install cplex
 #%pip install docplex
 #%pip install dash-loading-spinners
+###############################################################################
 
 """
-With Anaconda in a local pc, in your environment run:
+With Anaconda in a local pc, in your environment, run: ########################
 
 conda install spyder
 conda install pandas
@@ -21,6 +23,7 @@ pip install dash-loading-spinner
 conda install geopy
 pip install docplex
 pip install cplex
+###############################################################################
 """
 
 import dash
@@ -139,8 +142,8 @@ sidebar =  html.Div(
         html.Br(),        
         html.P([ html.Br(),'Liters of gasoline per kilometer'],id='gas_km',style={"margin-top": "15px","font-weight": "bold"}),
         dcc.Input(id="choose_gas_km", type="text", value='1.12'),
-        html.P([ html.Br(),'CO2 gr per lt'],id='CO2_lt',style={"margin-top": "15px","font-weight": "bold"}),
-        dcc.Input(id="choose_CO2_lt (Kg/lt)", type="text", value='2.3'),        
+        html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt',style={"margin-top": "15px","font-weight": "bold"}),
+        dcc.Input(id="choose_CO2_lt", type="text", value='2.3'),        
         html.Div(id='outdata', style={"margin-top": "15px"}),
         dcc.Store(id='internal-value_stops', data=[]),
         dcc.Store(id='internal-value_routes', data=[])
@@ -201,10 +204,11 @@ app.layout = dbc.Container(
                Output('map','children',allow_duplicate=True)],
               [State('choose_buses',"value")],
               [State('internal-value_stops','data')],
+              [State('choose_CO2_lt','data')],
               [Input("calc_routes", "n_clicks")],
               manager=long_callback_manager
               )
-def calc_routes(Nroutes,Stops,Nclick):
+def calc_routes(Nroutes,Stops,CO2km,Nclick):
     import calcroutes_module
     import dash_leaflet as dl
     custom_icon = dict(
@@ -220,7 +224,7 @@ def calc_routes(Nroutes,Stops,Nclick):
     print('\n')
     print('\n')
     print('Start calculating routes...')
-    routes_coords = calcroutes_module.CalcRoutes_module(Stops)
+    routes_coords = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),float(CO2km))
     # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
     newMap = dl.Map([dl.TileLayer()] + markers,
@@ -239,7 +243,7 @@ def calc_routes(Nroutes,Stops,Nclick):
               [Input("visualize_routes", "n_clicks")]
               )
 def visualize_route(Route,Stops,RoutesCoords,Nclick):
-    Route = int(Route)-1
+    Route = int(Route.split(' ')[1])-1
     RoutesCoords = RoutesCoords[Route]
 
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
