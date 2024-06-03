@@ -56,7 +56,8 @@ import diskcache
 cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
 
-
+print('Code restarted!')
+"""
 # clean console ###############################################################
 try:
     from IPython import get_ipython
@@ -65,8 +66,8 @@ try:
 except:
     pass
 ###############################################################################
-
-
+print('Console cleared!')
+"""
 #"/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/calcroutes_module.py"
 
 #im1 = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/CSL_logo.PNG'
@@ -323,21 +324,24 @@ def load_stops(N):
               [Input('map','clickData')]
               )
 def add_marker(St,clickd):
-    marker_lat = clickd['latlng']['lat']
-    marker_lon = clickd['latlng']['lng']
-    St.append((marker_lat,marker_lon))
-    out=''
-    for i in range(len(St)):
-        out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
-    #markers = [dl.Marker(dl.Tooltip("double click on Marker after drag to update its position"), position=pos, id="marker{}".format(i), draggable=True) for i, pos in enumerate(St)]
-    #Layer_group = dl.LayerGroup(markers, id="markers_group")
-    #Layer_group = dl.LayerGroup(markers, id={"type": "markers_group", "index": 0})
-    #markers = [dl.Marker(id={'type': 'marker', 'index': key}, position=data[key]) for key in data]
-    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-    newMap = dl.Map([dl.TileLayer()] + markers,
+       #try:
+       marker_lat = clickd['latlng']['lat']
+       marker_lon = clickd['latlng']['lng']
+       St.append((marker_lat,marker_lon))
+       out=''
+       for i in range(len(St)):
+           out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
+       #markers = [dl.Marker(dl.Tooltip("double click on Marker after drag to update its position"), position=pos, id="marker{}".format(i), draggable=True) for i, pos in enumerate(St)]
+       #Layer_group = dl.LayerGroup(markers, id="markers_group")
+       #Layer_group = dl.LayerGroup(markers, id={"type": "markers_group", "index": 0})
+       #markers = [dl.Marker(id={'type': 'marker', 'index': key}, position=data[key]) for key in data]
+       markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+       newMap = dl.Map([dl.TileLayer()] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '50vh', 'margin': "auto", "display": "block"})
-    return [out,St,newMap]
+       return [out,St,newMap]
+       #except:
+       #return [] 
 
 @app.callback([Output("outdata", "children",allow_duplicate=True),Output('internal-value_stops','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
               [State('internal-value_stops','data')],
