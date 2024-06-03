@@ -58,6 +58,7 @@ long_callback_manager = DiskcacheLongCallbackManager(cache)
 
 print('Code restarted!')
 """
+# the following code caused some problem...
 # clean console ###############################################################
 try:
     from IPython import get_ipython
