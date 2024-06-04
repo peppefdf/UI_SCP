@@ -137,14 +137,24 @@ mouse_over_mess = """
 Shifts stops to closest
 <p>existing bus stops</p>"""
 
+mouse_over_mess_stops = """
+Proposes bus stops based on
+<p>workers Lats/Lons in CSV file</p>
+<p>and the number of clusters</p>"""
+
 routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
 
 sidebar =  html.Div(
        [
+        html.P([ html.Br(),'Choose number of worker clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
+        dcc.Input(id="n_clusters", type="text", value='19'),
+        html.Br(),        
         html.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
-        dcc.Input(id="n_clusters", type="text", value='19', style={"margin-top": "15px"}),
-        html.Br(),
+        dbc.Popover(dcc.Markdown(mouse_over_mess_stops, dangerously_allow_html=True),
+                  target="propose_stops",
+                  body=True,
+                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
         html.Button("Match stops", id="match_stops", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
         dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
                   target="match_stops",
