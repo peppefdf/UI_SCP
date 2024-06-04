@@ -189,7 +189,8 @@ content = html.Div(
              html.Img(src=image2,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"})
              ],style= {'verticalAlign': 'top'}),
           dls.Clock(
-                    children=[dl.Map([dl.TileLayer()], center=center, zoom=12, id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+                    children=[dl.Map([dl.TileLayer(),
+                    dl.ScaleControl(position="topright")], center=center, zoom=12, id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 ],
                     color="#435278",
                     speed_multiplier=1.5,
@@ -246,7 +247,7 @@ def calc_routes(Nroutes,Stops,CO2km,Nclick):
     print(routes_coords)
     # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
-    newMap = dl.Map([dl.TileLayer()] + markers,
+    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"}) 
     ###################################################################################################   
@@ -267,7 +268,7 @@ def visualize_route(Route,Stops,RoutesCoords,Nclick):
     RoutesCoords = RoutesCoords[Route]
 
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
-    newMap = dl.Map([dl.TileLayer(), dl.Polyline(positions=RoutesCoords)] + markers,
+    newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright"), dl.Polyline(positions=RoutesCoords)] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
     return [newMap]
@@ -294,7 +295,7 @@ def match_stops(St,Nclicks):
         St[i_st]=(x,y)
         out = out + str(St[i_st][0]) + ', ' + str(St[i_st][1]) + '; '
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-    newMap = dl.Map([dl.TileLayer()] + markers,
+    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
     return [len(St),St,newMap]
@@ -328,7 +329,7 @@ def propose_stops(n_clusters,N):
          out = out + str(bus_stops_df['Lat'][ind]) + ',' + str(bus_stops_df['Lon'][ind]) +';'
          St.append((bus_stops_df['Lat'][ind],bus_stops_df['Lon'][ind]))
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-    newMap = dl.Map([dl.TileLayer()] + markers,
+    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
     #return [out,St,newMap]
@@ -352,7 +353,7 @@ def add_marker(St,clickd):
        #Layer_group = dl.LayerGroup(markers, id={"type": "markers_group", "index": 0})
        #markers = [dl.Marker(id={'type': 'marker', 'index': key}, position=data[key]) for key in data]
        markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-       newMap = dl.Map([dl.TileLayer()] + markers,
+       newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
        return [out,St,newMap]
@@ -372,7 +373,7 @@ def remove_marker(St,*args):
        for i in range(len(St)):
            out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
        markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-       newMap = dl.Map([dl.TileLayer()] + markers,
+       newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
        return [out,St,newMap]
