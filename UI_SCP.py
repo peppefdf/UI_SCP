@@ -143,7 +143,7 @@ sidebar =  html.Div(
        [
         html.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
-        dcc.Input(id="n_clusters", type="text", value='19'),
+        dcc.Input(id="n_clusters", type="text", value='19', style={"margin-top": "15px"}),
         html.Br(),
         html.Button("Match stops", id="match_stops", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
         dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
