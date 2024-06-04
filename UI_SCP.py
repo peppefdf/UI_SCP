@@ -302,7 +302,7 @@ def match_stops(St,Nclicks):
 
 #@app.callback([Output("clickdata", "children")],
 @app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
-              [Input("n_clusters", "value"),
+              [State("n_clusters", "value"),
                Input("propose_stops", "n_clicks")]
               )
 def propose_stops(n_clusters,N):
