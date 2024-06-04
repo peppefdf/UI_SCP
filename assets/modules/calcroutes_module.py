@@ -160,7 +160,7 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       
       print()
       print('Generating graph...')
-      G = ox.graph_from_point(ori_coord, dist=20000, network_type="drive", simplify=True, retain_all=False)
+      G = ox.graph_from_point(ori_coord, dist=40000, network_type="drive", simplify=True, retain_all=False)
       print('Graph completed!')
       print()
       print('Adding edge speeds, lengths and travelling speeds...')
