@@ -4,3 +4,8 @@ cache/3b8c863cf4d7b382c4cd981be17db860d4ac6180.json
 cache/5da8acdcccdad023b800c88f27849087f949ed56.json
 cache/d34006c9db5bccd5a6ef7b22f2636723a5a52b80.json
 *.json
+assets/modules/__pycache__/calcroutes_module.cpython-36.pyc
+assets/modules/__pycache__/calcroutes_module.cpython-36.pyc
+assets/modules/__pycache__/find_stops_module.cpython-36.pyc
+assets/data/INPUT_stops_example.csv
+assets/modules/__pycache__/calcroutes_module.cpython-36.pyc

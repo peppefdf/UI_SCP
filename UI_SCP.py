@@ -81,7 +81,7 @@ im2 = root_dir +'images/DFG_logo.png'
 #stops_file = "/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/GTFS_files_bus_stops_12_02_2024/all_stops_12_02_2024.csv"
 #stops_file = "/home/beppe23/mysite/assets/all_stops_12_02_2024.csv"
 #stops_file = "C:/Users/gfotidellaf/Desktop/CSL_Gipuzkoa/Accessibility/assets/all_stops_12_02_2024.csv"
-stops_file = root_dir +'data/all_stops_12_02_2024.csv'
+stops_file = root_dir +'data/all_bus_stops.csv'
 
 
 from PIL import Image
@@ -141,7 +141,9 @@ routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
 
 sidebar =  html.Div(
        [
-        html.Button("Load stops from file", id="load_stops", n_clicks=0),
+        html.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
+        html.Br(),
+        dcc.Input(id="n_clusters", type="text", value='19'),
         html.Br(),
         html.Button("Match stops", id="match_stops", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
         dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
@@ -300,20 +302,31 @@ def match_stops(St,Nclicks):
 
 #@app.callback([Output("clickdata", "children")],
 @app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
-              [Input("load_stops", "n_clicks")]
+              [Input("n_clusters", "value"),
+               Input("propose_stops", "n_clicks")]
               )
-def load_stops(N):
+def propose_stops(n_clusters,N):
+    import find_stops_module   
+    n_clusters  = int(n_clusters)
     #filename = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Accessibility_Map/INPUT_stops.csv'
-    filename = 'C:/Users/gfotidellaf/Desktop/CSL_Gipuzkoa/Accessibility/assets/INPUT_stops.csv'
-    df = pd.read_csv(filename)
+    #filename = 'C:/Users/gfotidellaf/Desktop/CSL_Gipuzkoa/Accessibility/assets/INPUT_stops.csv'
+    #filename = './assets/data/INPUT_stops.csv'
+    #n_clusters = 19
+    cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max
+    root_dir = './assets/data/'
+    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
+    stops_DF = pd.read_csv(root_dir + "all_bus_stops.csv", encoding='latin-1')
+    bus_stops_df,model,yhat = find_stops_module.FindStops(workers_DF, stops_DF, n_clusters, cutoff)
+    #df = pd.read_csv(filename)
     #out=St.loc[:'Lat']
     #for i in range(len(St)):
     #    out = out + str(St.loc[i,['Lat']]) + ', ' + str(St.loc[i,['Lon']]) + '; '
     out = ''
     St = []
-    for ind in df.index:
-         out = out + str(df['Lat'][ind]) + ',' + str(df['Lon'][ind]) +';'
-         St.append((df['Lat'][ind],df['Lon'][ind]))
+    for ind in bus_stops_df.index:
+         out = out + str(bus_stops_df['Lat'][ind]) + ',' + str(bus_stops_df['Lon'][ind]) +';'
+         St.append((bus_stops_df['Lat'][ind],bus_stops_df['Lon'][ind]))
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
     newMap = dl.Map([dl.TileLayer()] + markers,
                      center=center, zoom=12, id="map",

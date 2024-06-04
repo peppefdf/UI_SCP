@@ -43,7 +43,7 @@ import datetime
 #drive.mount('/content/drive')
 
 # directory where GTFS files will be saved
-directory = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Proyecto Piloto_Eskuzaitzeta/GTFS_files/'
+#directory = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Proyecto Piloto_Eskuzaitzeta/GTFS_files/'
 
 # Read the GTFS files
 #stops = pd.read_csv('/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Proyecto Piloto_Eskuzaitzeta/DATOS_GIPUZKOA/gtfs_Zubieta/gtfs/stops.txt', delimiter=',')
