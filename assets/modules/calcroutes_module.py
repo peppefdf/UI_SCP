@@ -26,9 +26,11 @@ import json
 import itertools
 
 import pandas as pd
+import geopandas
 from geopy import distance # Biblioteca para calculos geograficos
 from geopy.geocoders import Nominatim
 from geopy.point import Point
+from shapely.geometry import Polygon  
 
 #import folium
 #from folium import PolyLine
@@ -160,7 +162,23 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       
       print()
       print('Generating graph...')
-      G = ox.graph_from_point(ori_coord, dist=40000, network_type="drive", simplify=True, retain_all=False)
+      lats, lons = map(list, zip(*puntos))
+      max_lat = max(lats)
+      min_lat = min(lats)      
+      max_lon = max(lons)
+      min_lon = min(lons)
+      """
+      df = pd.DataFrame({'lat':lats, 'lon':lons})
+      gdf = geopandas.GeoDataFrame(
+          df, geometry=geopandas.points_from_xy(lons, lats), crs="EPSG:4326"
+      )
+      poly_convex_hull = gdf['geometry'].unary_union.convex_hull 
+      #G = ox.graph_from_point(ori_coord, dist=40000, network_type="drive", simplify=True, retain_all=False)
+      G = ox.graph_from_polygon(poly_convex_hull, network_type="drive", simplify=True, retain_all=False)
+      """
+      #G = ox.graph_from_bbox(max_lat*1.05,min_lat*0.95,max_lon*0.95,min_lon*1.05, network_type="drive", simplify=True, retain_all=False) 
+      G = ox.graph_from_bbox(min_lat*0.99,max_lat*1.01,min_lon*1.01,max_lon*0.99, network_type="drive", simplify=True, retain_all=False) 
+
       print('Graph completed!')
       print()
       print('Adding edge speeds, lengths and travelling speeds...')
