@@ -96,14 +96,24 @@ stops_df = pd.read_csv(stops_file, encoding='latin-1')
 
 stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()
 
+bus_icon = "https://i.ibb.co/HV0K5Fp/bus-stop.png" 
+worker_icon = "https://i.ibb.co/W0H7nYM/meeting-point.png"
+
 center = (43.26852347667122, -1.9741372404905988)
 #    iconUrl= 'https://uxwing.com/wp-content/themes/uxwing/download/location-travel-map/bus-stop-icon.png',
 #    iconUrl= "https://i.ibb.co/6n1tzcQ/bus-stop.png",
-custom_icon = dict(
-    iconUrl= "https://i.ibb.co/HV0K5Fp/bus-stop.png",
+custom_icon_bus = dict(
+    iconUrl= bus_icon,
     iconSize=[40,40],
     iconAnchor=[22, 40]
 )
+
+custom_icon_worker = dict(
+    iconUrl= worker_icon,
+    iconSize=[40,40],
+    iconAnchor=[22, 40]
+)
+
 
 app = Dash(prevent_initial_callbacks=True)
 
@@ -164,6 +174,8 @@ routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
 
 sidebar =  html.Div(
        [
+        html.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
+        html.Br(),
         html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
         dbc.Popover(dcc.Markdown(mouse_over_mess_clusters, dangerously_allow_html=True),
                   target="n_clusters",
@@ -279,7 +291,7 @@ app.layout = dbc.Container(
 def calc_routes(Nroutes,Stops,CO2km,Nclick):
     import calcroutes_module
     import dash_leaflet as dl
-    custom_icon = dict(
+    custom_icon_bus = dict(
     iconUrl= "https://i.ibb.co/HV0K5Fp/bus-stop.png",
     iconSize=[40,40],
     iconAnchor=[22, 40]
@@ -296,7 +308,7 @@ def calc_routes(Nroutes,Stops,CO2km,Nclick):
     print('Routes calculated!')
     print(routes_coords)
     # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
-    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
+    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
     newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"}) 
@@ -317,7 +329,7 @@ def visualize_route(Route,Stops,RoutesCoords,Nclick):
     Route = int(Route)-1    
     RoutesCoords = RoutesCoords[Route]
 
-    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
+    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
     newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright"), dl.Polyline(positions=RoutesCoords)] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
@@ -344,7 +356,7 @@ def match_stops(St,Nclicks):
         bus_stops.append((x, y))
         St[i_st]=(x,y)
         out = out + str(St[i_st][0]) + ', ' + str(St[i_st][1]) + '; '
-    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
     newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
@@ -378,12 +390,28 @@ def propose_stops(n_clusters,N):
     for ind in bus_stops_df.index:
          out = out + str(bus_stops_df['Lat'][ind]) + ',' + str(bus_stops_df['Lon'][ind]) +';'
          St.append((bus_stops_df['Lat'][ind],bus_stops_df['Lon'][ind]))
-    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
     newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
     #return [out,St,newMap]
     return [out,St,newMap]
+
+@app.callback([Output('map','children',allow_duplicate=True)],
+               [Input("show_workers", "n_clicks")]
+              )
+def show_workers(N):
+    root_dir = './assets/data/'
+    workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
+    St = []
+    for ind in workers_DF.index:
+         St.append((workers_DF['O_lat'][ind],workers_DF['O_long'][ind]))
+    markers = [dl.Marker(dl.Tooltip("Do something?"), position=pos, icon=custom_icon_worker, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+                     center=center, zoom=12, id="map",
+                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+    #return [out,St,newMap]
+    return [newMap]
 
 
 @app.callback([Output("outdata", "children",allow_duplicate=True), Output('internal-value_stops','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
@@ -402,7 +430,7 @@ def add_marker(St,clickd):
        #Layer_group = dl.LayerGroup(markers, id="markers_group")
        #Layer_group = dl.LayerGroup(markers, id={"type": "markers_group", "index": 0})
        #markers = [dl.Marker(id={'type': 'marker', 'index': key}, position=data[key]) for key in data]
-       markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+       markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
@@ -422,7 +450,7 @@ def remove_marker(St,*args):
        out=''
        for i in range(len(St)):
            out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
-       markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+       markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})

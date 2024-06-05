@@ -37,6 +37,7 @@ from shapely.geometry import Polygon
 #import matplotlib.pyplot as plt
 
 import datetime
+import time
 
 #from dash import Dash
 #import dash_leaflet as dl
@@ -167,19 +168,22 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       min_lat = min(lats)      
       max_lon = max(lons)
       min_lon = min(lons)
+      t0 = time.time()      
       """
       df = pd.DataFrame({'lat':lats, 'lon':lons})
       gdf = geopandas.GeoDataFrame(
           df, geometry=geopandas.points_from_xy(lons, lats), crs="EPSG:4326"
       )
       poly_convex_hull = gdf['geometry'].unary_union.convex_hull 
-      #G = ox.graph_from_point(ori_coord, dist=40000, network_type="drive", simplify=True, retain_all=False)
       G = ox.graph_from_polygon(poly_convex_hull, network_type="drive", simplify=True, retain_all=False)
       """
-      #G = ox.graph_from_bbox(max_lat*1.05,min_lat*0.95,max_lon*0.95,min_lon*1.05, network_type="drive", simplify=True, retain_all=False) 
+      
+      #G = ox.graph_from_point(ori_coord, dist=40000, network_type="drive", simplify=True, retain_all=False)
       G = ox.graph_from_bbox(min_lat*0.99,max_lat*1.01,min_lon*1.01,max_lon*0.99, network_type="drive", simplify=True, retain_all=False) 
+      t1 = time.time()
 
       print('Graph completed!')
+      print('time: ', (t1-t0)/60)
       print()
       print('Adding edge speeds, lengths and travelling speeds...')
       #hwy_speeds = {"residential": 30, "secondary": 30, "tertiary": 30}
