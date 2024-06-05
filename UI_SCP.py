@@ -33,6 +33,7 @@ import dash_loading_spinners as dls
 from dash import html, callback_context, ALL
 from dash import dcc, Output, Input, State, callback
 import dash_leaflet as dl
+import dash_daq as daq
 #import re
 import json
 import pandas as pd
@@ -77,6 +78,7 @@ print('Console cleared!')
 #im2 = '/home/beppe23/mysite/assets/DFG_logo.png'
 im1 = root_dir +'images/CSL_logo.PNG'
 im2 = root_dir +'images/DFG_logo.png'
+im3 = root_dir +'images/MUBIL_logo.png'
 
 #stops_file = "/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/GTFS_files_bus_stops_12_02_2024/all_stops_12_02_2024.csv"
 #stops_file = "/home/beppe23/mysite/assets/all_stops_12_02_2024.csv"
@@ -87,6 +89,7 @@ stops_file = root_dir +'data/all_bus_stops.csv'
 from PIL import Image
 image1 = Image.open(im1)
 image2 = Image.open(im2)
+image3 = Image.open(im3)
 
 
 stops_df = pd.read_csv(stops_file, encoding='latin-1')
@@ -128,9 +131,26 @@ SIDEBAR_STYLE = {
 
 # the styles for the main content position it to the right of the sidebar and
 # add some padding.
+"""
 CONTENT_STYLE = {
     "margin-left": "18rem",
     "margin-right": "2rem",
+}
+"""
+
+CONTENT_STYLE = {
+    "margin-left": "18rem",
+    "margin-right": "16rem",
+}
+
+INDICATORS_STYLE = {
+    "position": "fixed",
+    "top": 0,
+    "right": 0,
+    "bottom": 0,
+    "width": "12rem",
+    "padding": "2rem 1rem",
+    "background-color": "#f8f9fa",
 }
 
 mouse_over_mess = """
@@ -166,11 +186,7 @@ sidebar =  html.Div(
         html.P([ html.Br(),'Select route to visualize'],id='route_select',style={"margin-top": "15px", "font-weight": "bold"}),
         dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route'),
         html.Button("Visualize routes", id="visualize_routes", n_clicks=0,style={"margin-top": "15px"}),
-        html.Br(),        
-        html.P([ html.Br(),'Liters of gasoline per kilometer'],id='gas_km',style={"margin-top": "15px","font-weight": "bold"}),
-        dcc.Input(id="choose_gas_km", type="text", value='1.12'),
-        html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt',style={"margin-top": "15px","font-weight": "bold"}),
-        dcc.Input(id="choose_CO2_lt", type="text", value='2.3'),        
+        html.Br(),               
         html.Div(id='outdata', style={"margin-top": "15px"}),
         dcc.Store(id='internal-value_stops', data=[]),
         dcc.Store(id='internal-value_routes', data=[])
@@ -193,15 +209,17 @@ app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 """
 
 content = html.Div(
-    [
+       [
           html.Div([
              html.Img(src=image1,style={'width':'40%', "display": "inlineBlock", "verticalAlign": "top"}),
-             html.Img(src=image2,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"})
+             html.Img(src=image2,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"}),
+             html.Img(src=image3,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"})
+
              ],style= {'verticalAlign': 'top'}),
           dls.Clock(
                     children=[dl.Map([dl.TileLayer(),
                     dl.ScaleControl(position="topright")], center=center, zoom=12, id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-],
+                    ],
                     color="#435278",
                     speed_multiplier=1.5,
                     width=80,
@@ -209,13 +227,33 @@ content = html.Div(
                     )
     ],
     style=CONTENT_STYLE)
+
+indicators = html.Div(
+        [
+          html.P([ html.Br(),'Liters of gasoline per kilometer'],id='gas_km',style={"margin-top": "15px","font-weight": "bold"}),
+          dcc.Input(id="choose_gas_km", type="text", value='1.12'),
+          html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt',style={"margin-top": "15px","font-weight": "bold"}),
+          dcc.Input(id="choose_CO2_lt", type="text", value='2.3', style={"margin-bottom": "15px"}),             
+          html.Div([
+             daq.Gauge(
+             color={"gradient":True,"ranges":{"green":[0,6],"yellow":[6,8],"red":[8,10]}},
+             value=2,
+             label={'label':'CO2 emissions', 'style':{'font-size':'18px',"font-weight": "bold"}},
+             scale={'style':{'font-size':'12px',"font-weight": "bold"}},
+             max=10,
+             min=0)
+             ]) 
+         ],
+        style=INDICATORS_STYLE)
+
 #app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 app.layout = dbc.Container(
     [
         dbc.Row(
             [
                 dbc.Col(sidebar, width=3, className='bg-light'),
-                dbc.Col(content, width=9)
+                dbc.Col(content, width=7),
+                dbc.Col(indicators, width=2)
                 ],
             style={"height": "100vh"}
             ),
