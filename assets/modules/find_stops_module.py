@@ -137,7 +137,7 @@ def FindStops(workers_df, stops_df, n_clusters, cutoff):
         print()
         local_maxima_all_clusters.append(local_maxima_cluster_i)
 
-    # find closest bus stop ########################################################
+    # generate list of closest bus stops ######################################
     bus_stops = []
     center_ind = []
     for i in range(len(local_maxima_all_clusters)):
@@ -167,6 +167,8 @@ def FindStops(workers_df, stops_df, n_clusters, cutoff):
               #print(centers[i])
               #print(highDens_points[i])
           print()
+    ###########################################################################
+          
 
     df = pd.DataFrame(bus_stops, columns =['Lat', 'Lon'])    
     return [df,model,yhat]

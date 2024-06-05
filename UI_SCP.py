@@ -131,16 +131,10 @@ SIDEBAR_STYLE = {
 
 # the styles for the main content position it to the right of the sidebar and
 # add some padding.
-"""
-CONTENT_STYLE = {
-    "margin-left": "18rem",
-    "margin-right": "2rem",
-}
-"""
 
 CONTENT_STYLE = {
     "margin-left": "18rem",
-    "margin-right": "16rem",
+    "margin-right": "14rem",
 }
 
 INDICATORS_STYLE = {
@@ -162,11 +156,19 @@ Proposes bus stops based on
 <p>workers Lats/Lons in CSV file</p>
 <p>and the number of clusters</p>"""
 
+mouse_over_mess_clusters = """
+Clusters by which
+<p>to group workers</p>"""
+
 routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
 
 sidebar =  html.Div(
        [
-        html.P([ html.Br(),'Choose number of worker clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
+        html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
+        dbc.Popover(dcc.Markdown(mouse_over_mess_clusters, dangerously_allow_html=True),
+                  target="n_clusters",
+                  body=True,
+                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
         dcc.Input(id="n_clusters", type="text", value='19'),
         html.Br(),        
         html.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
@@ -239,7 +241,7 @@ indicators = html.Div(
              color={"gradient":True,"ranges":{"green":[0,6],"yellow":[6,8],"red":[8,10]}},
              value=2,
              label={'label':'CO2 emissions', 'style':{'font-size':'18px',"font-weight": "bold"}},
-             scale={'style':{'font-size':'12px',"font-weight": "bold"}},
+             style = {"font-weight": "bold"},
              max=10,
              min=0)
              ]) 
