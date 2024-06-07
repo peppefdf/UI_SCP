@@ -135,9 +135,13 @@ SIDEBAR_STYLE = {
     "bottom": 0,
     "width": "16rem",
     "padding": "2rem 1rem",
-    "background-color": "#f8f9fa",
+    "background-color": "#f8f9fa"
 }
 
+"""
+"padding": "2rem 1rem",
+"background-color": "#f8f9fa",
+"""
 # the styles for the main content position it to the right of the sidebar and
 # add some padding.
 
@@ -293,8 +297,8 @@ app.layout = dbc.Container(
     [
         dbc.Row(
             [
-                dbc.Col(sidebar, width=3, className='bg-light'),
-                dbc.Col(content, width=7),
+                dbc.Col(sidebar, width=2, className='bg-light'),
+                dbc.Col(content, width=8),
                 dbc.Col(indicators, width=2)
                 ],
             style={"height": "100vh"}
