@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['UI_SCP.py', 'assets\\modules\\calcroutes_module.py', 'assets\\modules\\find_stops_module.py', '..\\..\\Downloads\\untitled0.py', '..\\..\\Downloads\\untitled1.py']
+recent_files = ['UI_SCP.py', 'assets\\modules\\calcroutes_module.py', 'assets\\modules\\find_stops_module.py', '..\\..\\Downloads\\test_image.py']
 
 [main]
 version = 0.2.0
