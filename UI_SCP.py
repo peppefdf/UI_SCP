@@ -93,7 +93,6 @@ image3 = Image.open(im3)
 
 
 stops_df = pd.read_csv(stops_file, encoding='latin-1')
-
 stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()
 
 bus_icon = "https://i.ibb.co/HV0K5Fp/bus-stop.png" 
