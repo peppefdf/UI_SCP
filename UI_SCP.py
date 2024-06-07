@@ -114,7 +114,7 @@ custom_icon_worker = dict(
 )
 
 
-app = Dash(prevent_initial_callbacks=True)
+app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True)
 
 """
 app.layout = html.Div([
@@ -142,19 +142,23 @@ SIDEBAR_STYLE = {
 # add some padding.
 
 CONTENT_STYLE = {
-    "margin-left": "18rem",
-    "margin-right": "14rem",
+    "margin-left": "0rem",
+    "margin-right": "0rem",
 }
 
+
+
 INDICATORS_STYLE = {
+    "background-color": "#f8f9fa",
+}
+"""
     "position": "fixed",
     "top": 0,
     "right": 0,
     "bottom": 0,
     "width": "12rem",
     "padding": "2rem 1rem",
-    "background-color": "#f8f9fa",
-}
+"""
 
 mouse_over_mess = """
 Shifts stops to closest
@@ -166,20 +170,23 @@ Proposes bus stops based on
 <p>and the number of clusters</p>"""
 
 mouse_over_mess_clusters = """
-Clusters by which
-<p>to group workers</p>"""
+Clusters by which to group workers"""
 
 routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
 
+#dcc.Markdown(mouse_over_mess_clusters, dangerously_allow_html=True),
 sidebar =  html.Div(
        [
-        html.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
+        dbc.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
         html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
-        dbc.Popover(dcc.Markdown(mouse_over_mess_clusters, dangerously_allow_html=True),
+        dbc.Popover(
+                  dbc.PopoverBody(mouse_over_mess_clusters), 
                   target="n_clusters",
                   body=True,
-                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
+                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'},
+                  placement= 'right',
+                  is_open=False),
         #dcc.Input(id="n_clusters", type="text", value='19'),
         dcc.Slider(1, 30, 1,
                value=19,
@@ -188,13 +195,13 @@ sidebar =  html.Div(
                tooltip={"placement": "bottom", "always_visible": True}
         ) ,       
         html.Br(),        
-        html.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
+        dbc.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
         dbc.Popover(dcc.Markdown(mouse_over_mess_stops, dangerously_allow_html=True),
                   target="propose_stops",
                   body=True,
                   trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
-        html.Button("Match stops", id="match_stops", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
+        dbc.Button("Match stops", id="match_stops", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
         dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
                   target="match_stops",
                   body=True,
@@ -205,10 +212,10 @@ sidebar =  html.Div(
                value=2,
                id='choose_buses'
         ),
-        html.Button("Calculate routes", id="calc_routes", n_clicks=0,style={"margin-top": "15px"}),
+        dbc.Button("Calculate routes", id="calc_routes", n_clicks=0,style={"margin-top": "15px"}),
         html.P([ html.Br(),'Select route to visualize'],id='route_select',style={"margin-top": "15px", "font-weight": "bold"}),
         dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route'),
-        html.Button("Visualize routes", id="visualize_routes", n_clicks=0,style={"margin-top": "15px"}),
+        dbc.Button("Visualize routes", id="visualize_routes", n_clicks=0,style={"margin-top": "15px"}),
         html.Br(),               
         html.Div(id='outdata', style={"margin-top": "15px"}),
         dcc.Store(id='internal-value_stops', data=[]),
