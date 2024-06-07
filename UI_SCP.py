@@ -261,9 +261,21 @@ content = html.Div(
 indicators = html.Div(
         [
           html.P([ html.Br(),'Liters of gasoline per kilometer'],id='gas_km',style={"margin-top": "15px","font-weight": "bold"}),
-          dcc.Input(id="choose_gas_km", type="text", value='1.12'),
+          #dcc.Input(id="choose_gas_km", type="text", value='1.12'),
+          dcc.Slider(0, 10,0.05,
+               value=1.12,
+               id='choose_gas_km',
+               marks=None,
+               tooltip={"placement": "bottom", "always_visible": True}
+          ) ,          
           html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt',style={"margin-top": "15px","font-weight": "bold"}),
-          dcc.Input(id="choose_CO2_lt", type="text", value='2.3', style={"margin-bottom": "15px"}),             
+          #dcc.Input(id="choose_CO2_lt", type="text", value='2.3', style={"margin-bottom": "15px"}),             
+          dcc.Slider(0, 10,0.05,
+               value=2.3,
+               id='choose_CO2_lt',
+               marks=None,
+               tooltip={"placement": "bottom", "always_visible": True}
+          ) , 
           html.Div([
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,6],"yellow":[6,8],"red":[8,10]}},
