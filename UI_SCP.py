@@ -34,6 +34,9 @@ from dash import html, callback_context, ALL
 from dash import dcc, Output, Input, State, callback
 import dash_leaflet as dl
 import dash_daq as daq
+
+import plotly.express as px
+
 #import re
 import json
 import pandas as pd
@@ -272,6 +275,12 @@ content = html.Div(
     ],
     style=CONTENT_STYLE)
 
+
+# This dataframe has 244 lines, but 4 distinct values for `day`
+df = px.data.tips()
+fig = px.pie(df, values='tip', names='day')
+fig.update_layout(showlegend=False)
+fig.update_layout(title_text='Transport share', title_x=0.5)
 indicators = html.Div(
         [
           html.P([ html.Br(),'Liters of gasoline per kilometer'],id='gas_km',style={"margin-top": "15px","font-weight": "bold"}),
@@ -298,9 +307,14 @@ indicators = html.Div(
              style = {"font-weight": "bold"},
              max=10,
              min=0)
-             ]) 
-         ],
-        style=INDICATORS_STYLE)
+             ]),
+          html.Div([
+          dcc.Graph(figure=fig, id="graph",
+                    style={'width': '40vh'})
+          ],style={'width': '100%'})
+        ],
+        style=INDICATORS_STYLE),
+
 
 #app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 app.layout = dbc.Container(
