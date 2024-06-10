@@ -176,8 +176,14 @@ Proposes bus stops based on
 mouse_over_mess_clusters = """
 Clusters by which to group workers"""
 
+mouse_over_mess_depot = """
+Uncheck box for removing bus stops!"""
+
 routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
 
+stops_actions = [{'label': 'Delete stop', 'value': 'DS'},
+                 {'label': 'Set origin', 'value': 'SO'}                  
+                ]
 
 #dcc.Markdown(mouse_over_mess_clusters, dangerously_allow_html=True),
 sidebar =  html.Div(
@@ -198,16 +204,7 @@ sidebar =  html.Div(
                id='n_clusters',
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
-        ) , 
-
-        dbc.Checklist(
-            options=[
-                {"label": "set depot", "value": 1},
-            ],
-            value=[],
-            id="set_depot"
-         ),         
-        
+        ) ,       
         html.Br(),        
         dbc.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
@@ -215,12 +212,14 @@ sidebar =  html.Div(
                   target="propose_stops",
                   body=True,
                   trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),      
-        
+
         dbc.Button("Match stops", id="match_stops", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
         dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
                   target="match_stops",
                   body=True,
                   trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
+        html.P([ html.Br(),'Select action for stops'],id='action_select',style={"margin-top": "15px", "font-weight": "bold"}),
+        dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action'),       
         html.P([ html.Br(),'Choose number of buses'],id='buses_num',style={"margin-top": "15px","font-weight": "bold"}),
         #dcc.Input(id="choose_buses", type="text", value='3'),
         dcc.Slider(1, 10, 1,
@@ -462,7 +461,6 @@ def show_workers(N):
               [Input('map','clickData')]
               )
 def add_marker(St,clickd):
-       #try:
        marker_lat = clickd['latlng']['lat']
        marker_lon = clickd['latlng']['lng']
        St.append((marker_lat,marker_lon))
@@ -478,97 +476,62 @@ def add_marker(St,clickd):
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
        return [out,St,newMap]
-       #except:
-       #return [] 
 
 
 #               Output('set_depot','children',allow_duplicate=True),
 #              [State('internal-value_stops','data'), State('set_depot','value')],
 @app.callback([Output("outdata", "children",allow_duplicate=True),
                Output('internal-value_stops','data',allow_duplicate=True),
+               Output("choose_stop_action", "value",allow_duplicate=True),
                Output('map','children',allow_duplicate=True)],
-              [State('internal-value_stops','data'), State('set_depot','value')],
+              [State('internal-value_stops','data'), State('choose_stop_action',"value")],
               [Input({"type": "marker", "index": ALL},"n_clicks")],
               prevent_initial_callbacks=True)
-def remove_marker(St,depot,*args):
+def change_marker(St, stop_operation, *args):
+    print()
+    print()     
+    print('trying to remove...')
+    print()
+    print()     
+
     marker_id = callback_context.triggered[0]["prop_id"].split(".")[0].split(":")[1].split(",")[0]
     n_clicks = callback_context.triggered[0]["value"]
- 
-    #print(depot[0])
-    if n_clicks == 1:
-        
-          """
-          print('trying to modify the list...') 
-          tmp = St[int(marker_id)]
-          St.pop(int(marker_id))
-          St.insert(0, tmp) 
-          print('list modified!')
-          """ 
-          """
-          checklist = dbc.Checklist(
-            options=[
-                {"label": "set depot", "value": 1},
-            ],
-            value=[],
-            id="set_depot"
-          ) 
-
-          """
-          
-          
-          try:
-             print(len(depot)) 
-             print('trying to modify list...')
-             if len(depot) == 1:
-                print('inside if!') 
-                print(int(marker_id))
-                print(St[int(marker_id)])
-                tmp = St[int(marker_id)]
-                St.pop(int(marker_id))
-                St.insert(0, tmp)
-                print('list modified!')
-                print()
-
-                markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-                newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-                     center=center, zoom=12, id="map",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-                return ['Depot set!',St,newMap]
-
-          except:
-              pass
-          
-
-          """ 
-          out=''
-          for i in range(len(St)):
-              out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
-          """
-
-          
-
-    if n_clicks ==2:
+    print('marker id?:', marker_id)  
+    print(stop_operation)
+       
+    if stop_operation == "DS":
+       print()
+       print()        
        del St[int(marker_id)]
-       """
-       checklist = dbc.Checklist(
-            options=[
-                {"label": "set depot", "value": 1},
-            ],
-            value=[],
-            id="set_depot"
-       )        
-       """
-       out=''
-       for i in range(len(St)):
-           out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
+       print()
+       print()
+
+       #out=''
+       #for i in range(len(St)):
+       #    out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
        markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-       return [out,St,newMap]
+       return ['Stop deleted!',St,' ',newMap]
+
+    if stop_operation == "SO":
+        print('inside if!') 
+        print(int(marker_id))
+        print(St[int(marker_id)])
+        tmp = St[int(marker_id)]
+        St.pop(int(marker_id))
+        St.insert(0, tmp)
+        print('list modified!')
+        print()
+        markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+                     center=center, zoom=12, id="map",
+                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        return ['Origin set!',St,' ',newMap]
+        
+
        
-
-
 
 if __name__ == '__main__':
     #app.run_server(Debug=True)
