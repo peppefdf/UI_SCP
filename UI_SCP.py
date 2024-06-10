@@ -19,7 +19,7 @@ conda install osmnx
 conda install dash
 pip install dash-leaflet
 pip install dash-bootstrap-components
-pip install dash-loading-spinner
+pip install dash-loading-spinners
 conda install geopy
 pip install docplex
 pip install cplex
@@ -178,6 +178,7 @@ Clusters by which to group workers"""
 
 routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
 
+
 #dcc.Markdown(mouse_over_mess_clusters, dangerously_allow_html=True),
 sidebar =  html.Div(
        [
@@ -197,14 +198,24 @@ sidebar =  html.Div(
                id='n_clusters',
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
-        ) ,       
+        ) , 
+
+        dbc.Checklist(
+            options=[
+                {"label": "set depot", "value": 1},
+            ],
+            value=[],
+            id="set_depot"
+         ),         
+        
         html.Br(),        
         dbc.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
         dbc.Popover(dcc.Markdown(mouse_over_mess_stops, dangerously_allow_html=True),
                   target="propose_stops",
                   body=True,
-                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
+                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),      
+        
         dbc.Button("Match stops", id="match_stops", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
         dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
                   target="match_stops",
@@ -470,15 +481,83 @@ def add_marker(St,clickd):
        #except:
        #return [] 
 
-@app.callback([Output("outdata", "children",allow_duplicate=True),Output('internal-value_stops','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
-              [State('internal-value_stops','data')],
+
+#               Output('set_depot','children',allow_duplicate=True),
+#              [State('internal-value_stops','data'), State('set_depot','value')],
+@app.callback([Output("outdata", "children",allow_duplicate=True),
+               Output('internal-value_stops','data',allow_duplicate=True),
+               Output('map','children',allow_duplicate=True)],
+              [State('internal-value_stops','data'), State('set_depot','value')],
               [Input({"type": "marker", "index": ALL},"n_clicks")],
               prevent_initial_callbacks=True)
-def remove_marker(St,*args):
+def remove_marker(St,depot,*args):
     marker_id = callback_context.triggered[0]["prop_id"].split(".")[0].split(":")[1].split(",")[0]
     n_clicks = callback_context.triggered[0]["value"]
+ 
+    #print(depot[0])
+    if n_clicks == 1:
+        
+          """
+          print('trying to modify the list...') 
+          tmp = St[int(marker_id)]
+          St.pop(int(marker_id))
+          St.insert(0, tmp) 
+          print('list modified!')
+          """ 
+          """
+          checklist = dbc.Checklist(
+            options=[
+                {"label": "set depot", "value": 1},
+            ],
+            value=[],
+            id="set_depot"
+          ) 
+
+          """
+          
+          
+          try:
+             print(len(depot)) 
+             print('trying to modify list...')
+             if len(depot) == 1:
+                print('inside if!') 
+                print(int(marker_id))
+                print(St[int(marker_id)])
+                tmp = St[int(marker_id)]
+                St.pop(int(marker_id))
+                St.insert(0, tmp)
+                print('list modified!')
+                print()
+
+                markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+                newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+                     center=center, zoom=12, id="map",
+                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+                return ['Depot set!',St,newMap]
+
+          except:
+              pass
+          
+
+          """ 
+          out=''
+          for i in range(len(St)):
+              out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
+          """
+
+          
+
     if n_clicks ==2:
        del St[int(marker_id)]
+       """
+       checklist = dbc.Checklist(
+            options=[
+                {"label": "set depot", "value": 1},
+            ],
+            value=[],
+            id="set_depot"
+       )        
+       """
        out=''
        for i in range(len(St)):
            out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
@@ -487,6 +566,8 @@ def remove_marker(St,*args):
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
        return [out,St,newMap]
+       
+
 
 
 if __name__ == '__main__':
