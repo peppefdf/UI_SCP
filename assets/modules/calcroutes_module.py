@@ -180,7 +180,7 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       """
       
       #G = ox.graph_from_point(ori_coord, dist=40000, network_type="drive", simplify=True, retain_all=False)
-      G = ox.graph_from_bbox(min_lat*0.99,max_lat*1.01,min_lon*1.01,max_lon*0.99, network_type="drive", simplify=True, retain_all=False) 
+      G = ox.graph_from_bbox(min_lat*0.99,max_lat*1.01,min_lon*1.01,max_lon*0.99, network_type="drive", simplify=False, retain_all=False) 
       t1 = time.time()
 
       print('Graph completed!')
