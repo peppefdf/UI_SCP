@@ -540,13 +540,22 @@ def change_marker(St, Cow, stop_operation, *args):
        print()
        print()
 
-       #out=''
-       #for i in range(len(St)):
-       #    out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
-       markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+       markers = []
+       for i, pos in enumerate(St): 
+           if i == int(marker_id) or Cow[i]==1:
+               custom_icon = custom_icon_coworking
+               Cow[i] = 1               
+           else:
+               custom_icon = custom_icon_bus
+           tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
+           markers.append(tmp)    
        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+       #newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+       #              center=center, zoom=12, id="map",
+       #              style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
        return ['Stop deleted!',St,Cow,' ',newMap]
 
     if stop_operation == "SO":
@@ -569,30 +578,13 @@ def change_marker(St, Cow, stop_operation, *args):
     if stop_operation == "SC":
        markers = []
        for i, pos in enumerate(St): 
-           if i == int(marker_id):
+           if i == int(marker_id) or Cow[i]==1:
                custom_icon = custom_icon_coworking
-               print('setting coworking icon...')
-               Cow[i] = 1
+               Cow[i] = 1               
            else:
                custom_icon = custom_icon_bus
            tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
            markers.append(tmp)    
-       newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-                     center=center, zoom=12, id="map",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-       return ['Stop deleted!',St,Cow,' ',newMap]
-
-    if stop_operation == "DC":
-       print()
-       print()        
-       del Cow[int(marker_id)]
-       print()
-       print()
-
-       #out=''
-       #for i in range(len(St)):
-       #    out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
-       markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
