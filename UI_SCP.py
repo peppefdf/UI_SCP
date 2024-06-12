@@ -20,6 +20,7 @@ conda install dash
 pip install dash-leaflet
 pip install dash-bootstrap-components
 pip install dash-loading-spinners
+pip install dash-daq?
 conda install geopy
 pip install docplex
 pip install cplex
@@ -100,6 +101,7 @@ stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()
 
 bus_icon = "https://i.ibb.co/HV0K5Fp/bus-stop.png" 
 worker_icon = "https://i.ibb.co/W0H7nYM/meeting-point.png"
+coworking_icon = "https://i.ibb.co/J2qXGKN/coworking-icon.png"
 
 center = (43.26852347667122, -1.9741372404905988)
 #    iconUrl= 'https://uxwing.com/wp-content/themes/uxwing/download/location-travel-map/bus-stop-icon.png',
@@ -109,9 +111,13 @@ custom_icon_bus = dict(
     iconSize=[40,40],
     iconAnchor=[22, 40]
 )
-
 custom_icon_worker = dict(
     iconUrl= worker_icon,
+    iconSize=[40,40],
+    iconAnchor=[22, 40]
+)
+custom_icon_coworking = dict(
+    iconUrl= coworking_icon,
     iconSize=[40,40],
     iconAnchor=[22, 40]
 )
@@ -184,8 +190,9 @@ Uncheck box for removing bus stops!"""
 
 routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
 
-stops_actions = [{'label': 'Delete stop', 'value': 'DS'},
-                 {'label': 'Set origin', 'value': 'SO'}                  
+stops_actions = [{'label': 'Delete marker', 'value': 'DM'},
+                 {'label': 'Set origin', 'value': 'SO'},
+                 {'label': 'Set coworking hub', 'value': 'SC'}                   
                 ]
 
 #dcc.Markdown(mouse_over_mess_clusters, dangerously_allow_html=True),
@@ -221,7 +228,7 @@ sidebar =  html.Div(
                   target="match_stops",
                   body=True,
                   trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
-        html.P([ html.Br(),'Select action for stops'],id='action_select',style={"margin-top": "15px", "font-weight": "bold"}),
+        html.P([ html.Br(),'Select action for markers'],id='action_select',style={"margin-top": "15px", "font-weight": "bold"}),
         dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action'),       
         html.P([ html.Br(),'Choose number of buses'],id='buses_num',style={"margin-top": "15px","font-weight": "bold"}),
         #dcc.Input(id="choose_buses", type="text", value='3'),
@@ -236,6 +243,7 @@ sidebar =  html.Div(
         html.Br(),               
         html.Div(id='outdata', style={"margin-top": "15px"}),
         dcc.Store(id='internal-value_stops', data=[]),
+        dcc.Store(id='internal-value_coworking', data=[]),        
         dcc.Store(id='internal-value_routes', data=[])
        ],
        style=SIDEBAR_STYLE)
@@ -360,7 +368,7 @@ def calc_routes(Nroutes,Stops,CO2km,Nclick):
     print('\n')
     print('\n')
     print('Start calculating routes...')
-    routes_coords = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),float(CO2km))
+    routes_coords, Graph = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),float(CO2km))
     print('Routes calculated!')
     print(routes_coords)
     # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
@@ -470,14 +478,19 @@ def show_workers(N):
     return [newMap]
 
 
-@app.callback([Output("outdata", "children",allow_duplicate=True), Output('internal-value_stops','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
-              [State('internal-value_stops','data')],
+@app.callback([Output("outdata", "children",allow_duplicate=True), 
+               Output('internal-value_stops','data',allow_duplicate=True),
+               Output('internal-value_coworking','data',allow_duplicate=True),
+               Output('map','children',allow_duplicate=True)],
+              [State('internal-value_stops','data'),
+               State('internal-value_coworking','data')],
               [Input('map','clickData')]
               )
-def add_marker(St,clickd):
+def add_marker(St,Cow,clickd):
        marker_lat = clickd['latlng']['lat']
        marker_lon = clickd['latlng']['lng']
        St.append((marker_lat,marker_lon))
+       Cow.append(0)
        out=''
        for i in range(len(St)):
            out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
@@ -485,38 +498,45 @@ def add_marker(St,clickd):
        #Layer_group = dl.LayerGroup(markers, id="markers_group")
        #Layer_group = dl.LayerGroup(markers, id={"type": "markers_group", "index": 0})
        #markers = [dl.Marker(id={'type': 'marker', 'index': key}, position=data[key]) for key in data]
-       markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+       markers = []
+       for i, pos in enumerate(St): 
+           if Cow[i] == 1:
+               custom_icon = custom_icon_coworking
+               #print('setting coworking icon...')
+           else:
+               custom_icon = custom_icon_bus
+           tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
+           markers.append(tmp)    
+
        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-       return [out,St,newMap]
+       return [out,St,Cow,newMap]
 
 
-#               Output('set_depot','children',allow_duplicate=True),
-#              [State('internal-value_stops','data'), State('set_depot','value')],
 @app.callback([Output("outdata", "children",allow_duplicate=True),
                Output('internal-value_stops','data',allow_duplicate=True),
+               Output('internal-value_coworking','data',allow_duplicate=True),
                Output("choose_stop_action", "value",allow_duplicate=True),
                Output('map','children',allow_duplicate=True)],
-              [State('internal-value_stops','data'), State('choose_stop_action',"value")],
+              [State('internal-value_stops','data'), 
+               State('internal-value_coworking','data'), 
+               State('choose_stop_action',"value")],
               [Input({"type": "marker", "index": ALL},"n_clicks")],
               prevent_initial_callbacks=True)
-def change_marker(St, stop_operation, *args):
-    print()
-    print()     
-    print('trying to remove...')
-    print()
-    print()     
+def change_marker(St, Cow, stop_operation, *args):
 
     marker_id = callback_context.triggered[0]["prop_id"].split(".")[0].split(":")[1].split(",")[0]
     n_clicks = callback_context.triggered[0]["value"]
     print('marker id?:', marker_id)  
     print(stop_operation)
        
-    if stop_operation == "DS":
+    if stop_operation == "DM":
        print()
        print()        
        del St[int(marker_id)]
+       del Cow[int(marker_id)]
        print()
        print()
 
@@ -527,7 +547,7 @@ def change_marker(St, stop_operation, *args):
        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-       return ['Stop deleted!',St,' ',newMap]
+       return ['Stop deleted!',St,Cow,' ',newMap]
 
     if stop_operation == "SO":
         print('inside if!') 
@@ -535,16 +555,48 @@ def change_marker(St, stop_operation, *args):
         print(St[int(marker_id)])
         tmp = St[int(marker_id)]
         St.pop(int(marker_id))
+        Cow.pop(int(marker_id))
         St.insert(0, tmp)
+        Cow.insert(0, 0)
         print('list modified!')
         print()
         markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
         newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-        return ['Origin set!',St,' ',newMap]
+        return ['Origin set!',St,Cow,' ',newMap]
         
+    if stop_operation == "SC":
+       markers = []
+       for i, pos in enumerate(St): 
+           if i == int(marker_id):
+               custom_icon = custom_icon_coworking
+               print('setting coworking icon...')
+               Cow[i] = 1
+           else:
+               custom_icon = custom_icon_bus
+           tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
+           markers.append(tmp)    
+       newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+                     center=center, zoom=12, id="map",
+                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+       return ['Stop deleted!',St,Cow,' ',newMap]
 
+    if stop_operation == "DC":
+       print()
+       print()        
+       del Cow[int(marker_id)]
+       print()
+       print()
+
+       #out=''
+       #for i in range(len(St)):
+       #    out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
+       markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+       newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+                     center=center, zoom=12, id="map",
+                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+       return ['Stop deleted!',St,Cow,' ',newMap]
        
 
 if __name__ == '__main__':
