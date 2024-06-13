@@ -33,18 +33,10 @@ from geopy.geocoders import Nominatim
 from geopy.point import Point
 from shapely.geometry import Polygon  
 
-#import folium
-#from folium import PolyLine
-#import matplotlib.pyplot as plt
 
 import datetime
 import time
 
-#from dash import Dash
-#import dash_leaflet as dl
-
-#from google.colab import drive
-#drive.mount('/content/drive')
 
 # directory where GTFS files will be saved
 #directory = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Proyecto Piloto_Eskuzaitzeta/GTFS_files/'
@@ -161,7 +153,9 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       """
 
       ori_coord = puntos[0]
-      
+      print('points:')
+      print(puntos)
+      print()
       print()
       print('Generating graph...')
       lats, lons = map(list, zip(*puntos))
@@ -178,9 +172,22 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       poly_convex_hull = gdf['geometry'].unary_union.convex_hull 
       G = ox.graph_from_polygon(poly_convex_hull, network_type="drive", simplify=True, retain_all=False)
       """
-      
+      print('bbox:')
+      rel_margins_north = 0.0025
+      rel_margins_south = 0.0025
+      rel_margins_east = 0.0025
+      rel_margins_west = 0.0025
+      north = max_lat + (max_lat - min_lat) * rel_margins_north
+      south = min_lat - (max_lat - min_lat) * rel_margins_south
+      east = max_lon + (max_lon - min_lon) * rel_margins_east
+      west = min_lon - (max_lon - min_lon) * rel_margins_west
+      print(north, south, east, west)
+      print()
       #G = ox.graph_from_point(ori_coord, dist=40000, network_type="drive", simplify=True, retain_all=False)
-      G = ox.graph_from_bbox(min_lat*0.99,max_lat*1.01,min_lon*1.01,max_lon*0.99, network_type="drive", simplify=False, retain_all=False) 
+      #G = ox.graph_from_bbox(min_lat*0.99,max_lat*1.01,min_lon*1.01,max_lon*0.99, network_type="drive", simplify=False, retain_all=False)
+      #G = ox.graph_from_bbox(max_lat*1.001,min_lat*0.999,max_lon*0.99,min_lon*1.01, network_type="drive", simplify=False) 
+      G = ox.graph_from_bbox(north, south, east, west, network_type="drive", simplify=False) 
+
       t1 = time.time()
 
       print('Graph completed!')
@@ -426,7 +433,7 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       print('Total CO2 emissions: ',total_CO2)
 
       #print(coords_routes[0])
-      return coords_routes, G
+      return ruta_EZ0, coords_routes, G
 
 """
 LatsLons_routes = CalcRoutes_module(pts)
