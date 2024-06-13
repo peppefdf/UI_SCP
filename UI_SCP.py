@@ -53,7 +53,8 @@ root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
 #sys.path.append('/content/drive/MyDrive/Colab Notebooks')
 sys.path.append(root_dir + 'modules')
 #"/content/drive/MyDrive/Colab Notebooks/calcroutes_module.py"
-import calcroutes_module
+#import calcroutes_module -> import inside callback function
+#import generate_GTFS_module -> import inside callback function
 
 from dash.long_callback import DiskcacheLongCallbackManager
 ## Diskcache
@@ -355,6 +356,7 @@ app.layout = dbc.Container(
 def calc_routes(Nroutes,Stops,CO2km,Nclick):
     import calcroutes_module
     import dash_leaflet as dl
+    import generate_GTFS_module as gGTFS
     custom_icon_bus = dict(
     iconUrl= "https://i.ibb.co/HV0K5Fp/bus-stop.png",
     iconSize=[40,40],
@@ -368,9 +370,10 @@ def calc_routes(Nroutes,Stops,CO2km,Nclick):
     print('\n')
     print('\n')
     print('Start calculating routes...')
-    routes_coords, Graph = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),float(CO2km))
+    routes, routes_points_coords, Graph = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),float(CO2km))
     print('Routes calculated!')
-    print(routes_coords)
+    #print(routes_points_coords)
+    gGTFS.gGTFS(routes, Stops, Graph)
     # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
     newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
@@ -378,7 +381,7 @@ def calc_routes(Nroutes,Stops,CO2km,Nclick):
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"}) 
     ###################################################################################################   
     #return ["Calculation completed!", routes_coords, new_menu, newMap]
-    return ["Calculation completed for: "+str(len(Stops)), routes_coords, new_menu, newMap]
+    return ["Calculation completed for: "+str(len(Stops)), routes_points_coords, new_menu, newMap]
 
 #Output('map','children',allow_duplicate=True)
 
