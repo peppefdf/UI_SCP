@@ -576,8 +576,8 @@ def change_marker(St, Cow, stop_operation, *args):
        return ['Stop deleted!',St,Cow,' ',newMap]
 
     if stop_operation == "SO":
-        print(int(marker_id))
-        print(St[int(marker_id)])
+        print()
+        print()
         tmp = St[int(marker_id)]
         St.pop(int(marker_id))
         Cow.pop(int(marker_id))
