@@ -25,7 +25,7 @@ def gGTFS(ruta_EZ0, puntos, G):
         origin = ori_coord
         origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
         times = []
-        for i in range(1,len(ruta_stops_coord)-1):
+        for i in range(1,len(ruta_stops_coord)-1):           
            destination = ruta_stops_coord[i]
            destination_node = ox.distance.nearest_nodes(G, [destination[1]], [destination[0]])[0]
            #route = nx.shortest_path(G, origin_node, destination_node)

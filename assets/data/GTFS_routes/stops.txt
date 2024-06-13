@@ -1,7 +1,7 @@
 stop_id,stop_name,stop_lat,stop_lon, location_type, parent_station
-S0, 1_Donostia etorbidea, 43.27005546859397, -2.0197893377397365, 0,  
+S0, 1_Donostia etorbidea, 43.27005546859397, -2.019789337739736, 0,  
 S1, 322 - Goiko Plaza - San Martin Eliza_Pio Baroja kalea, 43.2199540485036, -2.020814022300965, 0, S0
-S2, Tolosa hiribidea_Ibaeta, 43.302278275927534, -2.0036754998067003, 0, S0
-S3, Ategorrieta hiribidea_Gros, 43.3220637019346, -1.9664393885236355, 0, S0
-S4, Usurbil_Kale Nagusia, 43.27037575328917, -2.0513670618722784, 0, S0
-S5, Araba kalea_Zelaiondo, 43.28081771988573, -2.165239589101472, 0, S0
+S2, Errotaburu pasealekua_Ibaeta, 43.3010368066045, -2.0038067336872016, 0, S0
+S3, 8_Zubiaurre pasealekua, 43.321261847440205, -1.9653923549503367, 0, S0
+S4, 3_San Inazio kalea, 43.27146782151296, -2.0505860828815967, 0, S0
+S5, Araba kalea_Zelaiondo, 43.280835320569075, -2.1652454007598467, 0, S0

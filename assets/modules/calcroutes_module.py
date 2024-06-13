@@ -173,10 +173,10 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       G = ox.graph_from_polygon(poly_convex_hull, network_type="drive", simplify=True, retain_all=False)
       """
       print('bbox:')
-      rel_margins_north = 0.0025
-      rel_margins_south = 0.0025
-      rel_margins_east = 0.0025
-      rel_margins_west = 0.0025
+      rel_margins_north = 0.025
+      rel_margins_south = 0.025
+      rel_margins_east = 0.025
+      rel_margins_west = 0.025
       north = max_lat + (max_lat - min_lat) * rel_margins_north
       south = min_lat - (max_lat - min_lat) * rel_margins_south
       east = max_lon + (max_lon - min_lon) * rel_margins_east
