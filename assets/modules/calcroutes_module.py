@@ -183,10 +183,15 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       west = min_lon - (max_lon - min_lon) * rel_margins_west
       print(north, south, east, west)
       print()
+      cf = '["highway"~"motorway|trunk|primary|secondary|residential|motorway_link|trunk_link|primary_link|secondary_link"]'
+      #cf = '["highway"~"motorway"]'
+      #cf = '["highway"~"motorway|motorway_link|primary"]'
+      #cf = '["bus"="yes"]'
       #G = ox.graph_from_point(ori_coord, dist=40000, network_type="drive", simplify=True, retain_all=False)
       #G = ox.graph_from_bbox(min_lat*0.99,max_lat*1.01,min_lon*1.01,max_lon*0.99, network_type="drive", simplify=False, retain_all=False)
       #G = ox.graph_from_bbox(max_lat*1.001,min_lat*0.999,max_lon*0.99,min_lon*1.01, network_type="drive", simplify=False) 
-      G = ox.graph_from_bbox(north, south, east, west, network_type="drive", simplify=False) 
+      G = ox.graph_from_bbox(north, south, east, west, network_type="drive", simplify=False, custom_filter=cf) 
+
 
       t1 = time.time()
 
