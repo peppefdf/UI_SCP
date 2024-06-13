@@ -551,7 +551,8 @@ def change_marker(St, Cow, stop_operation, *args):
 
     marker_id = callback_context.triggered[0]["prop_id"].split(".")[0].split(":")[1].split(",")[0]
     n_clicks = callback_context.triggered[0]["value"]
-    print('marker id?:', marker_id)  
+    #print('marker id?:', marker_id)
+    print('requested Marker Operation:')
     print(stop_operation)
        
     if stop_operation == "DM":      
