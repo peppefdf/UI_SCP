@@ -564,7 +564,6 @@ def change_marker(St, Cow, stop_operation, *args):
 
        markers = []
        for i, pos in enumerate(St): 
-           #if i == int(marker_id) or Cow[i]==1:
            if Cow[i]==1:
                custom_icon = custom_icon_coworking
            else:
