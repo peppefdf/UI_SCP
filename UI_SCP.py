@@ -395,16 +395,8 @@ def visualize_route(Route,Stops,RoutesCoords,Nclick):
     #Route = int(Route.split(' ')[1])-1
     Route = int(Route)-1    
     RoutesCoords = RoutesCoords[Route]
-    markers = []
-    for i, pos in enumerate(St): 
-           if i == int(marker_id) or Cow[i]==1:
-               custom_icon = custom_icon_coworking
-               Cow[i] = 1               
-           else:
-               custom_icon = custom_icon_bus
-           tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
-           markers.append(tmp)   
-    #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
+
+    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
     newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright"), dl.Polyline(positions=RoutesCoords)] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
@@ -412,15 +404,13 @@ def visualize_route(Route,Stops,RoutesCoords,Nclick):
 
 
 @app.callback([Output("outdata", "children",allow_duplicate=True), Output('internal-value_stops','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
-              [State('internal-value_stops','data'),
-               State('internal-value_coworking','data')],
+              [State('internal-value_stops','data')],
               [Input("match_stops", "n_clicks")]
               )
-def match_stops(St,Cow,Nclicks):
+def match_stops(St,Nclicks):
     bus_stops = []
     out = ''
     for i_st in range(len(St)):
-      if Cow[i_st] == 0:  
         #ref = np.array([lat,lon])
         ref = np.array([St[i_st][0],St[i_st][1]])
         ref = np.tile(ref,(len(stops_lat_lon),1)) # generate replicas of ref point
@@ -433,16 +423,7 @@ def match_stops(St,Cow,Nclicks):
         bus_stops.append((x, y))
         St[i_st]=(x,y)
         out = out + str(St[i_st][0]) + ', ' + str(St[i_st][1]) + '; '
-    markers = []
-    for i, pos in enumerate(St): 
-           if Cow[i] == 1:
-               custom_icon = custom_icon_coworking
-               #print('setting coworking icon...')
-           else:
-               custom_icon = custom_icon_bus
-           tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
-           markers.append(tmp)
-    #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
     newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
@@ -554,14 +535,19 @@ def change_marker(St, Cow, stop_operation, *args):
     print('marker id?:', marker_id)  
     print(stop_operation)
        
-    if stop_operation == "DM":      
+    if stop_operation == "DM":
+       print()
+       print()        
        del St[int(marker_id)]
        del Cow[int(marker_id)]
+       print()
+       print()
 
        markers = []
        for i, pos in enumerate(St): 
-           if Cow[i]==1:
+           if i == int(marker_id) or Cow[i]==1:
                custom_icon = custom_icon_coworking
+               Cow[i] = 1               
            else:
                custom_icon = custom_icon_bus
            tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
@@ -576,6 +562,7 @@ def change_marker(St, Cow, stop_operation, *args):
        return ['Stop deleted!',St,Cow,' ',newMap]
 
     if stop_operation == "SO":
+        print('inside if!') 
         print(int(marker_id))
         print(St[int(marker_id)])
         tmp = St[int(marker_id)]
@@ -585,7 +572,6 @@ def change_marker(St, Cow, stop_operation, *args):
         Cow.insert(0, 0)
         print('list modified!')
         print()
-        
         markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
         newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
