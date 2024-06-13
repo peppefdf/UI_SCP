@@ -554,13 +554,9 @@ def change_marker(St, Cow, stop_operation, *args):
     print('marker id?:', marker_id)  
     print(stop_operation)
        
-    if stop_operation == "DM":
-       print()
-       print()        
+    if stop_operation == "DM":      
        del St[int(marker_id)]
        del Cow[int(marker_id)]
-       print()
-       print()
 
        markers = []
        for i, pos in enumerate(St): 
