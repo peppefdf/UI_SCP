@@ -48,6 +48,8 @@ import numpy as np
 #drive.mount('/content/drive',  force_remount=True)
 
 import sys
+import os
+from os import listdir
 
 root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
 #sys.path.append('/content/drive/MyDrive/Colab Notebooks')
@@ -203,8 +205,24 @@ interventions = [{'label': 'Company transportation', 'value': 'CT'},
  
 
 
+filenames = listdir(root_dir+'data')
+files = [ filename for filename in filenames if filename.endswith( '.csv' ) ]
+#folders = ["assets","cache"]
+controls = [
+    dcc.Dropdown(
+        id="dropdown_folders",
+        options=[{"label": x, "value": x} for x in files],
+        value=[],
+    )
+]
+
+
 sidebar =  html.Div(
        [
+        html.Div(
+            [html.P("Choose workers file in myrootdir/assets/data/",style={"margin-top": "15px", "font-weight": "bold"}), html.Div(controls), html.Div(id="folder_files")]
+        ),
+        dcc.Store(id='root_dir', data=root_dir),
         dbc.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
         html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
@@ -323,6 +341,13 @@ app.layout = dbc.Container(
 
 
 
+@app.callback([Output("folder_files", "children")], 
+              State("root_dir","data"),
+              Input("dropdown_folders", "value"))
+def list_all_files(rootDir,folder_name):
+    #file_names = os.listdir(rootDir+'data/'+folder_name)
+    #file = html.Ul([html.Li(file) for file in file_names])
+    return [rootDir+'data/'+folder_name]
 
 @app.callback([Output('sidebar_intervention','children',allow_duplicate=True)],
               State('internal-value_stops','data'),
