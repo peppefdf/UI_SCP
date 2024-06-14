@@ -196,7 +196,49 @@ stops_actions = [{'label': 'Delete marker', 'value': 'DM'},
                  {'label': 'Set coworking hub', 'value': 'SC'}                   
                 ]
 
-#dcc.Markdown(mouse_over_mess_clusters, dangerously_allow_html=True),
+interventions = [{'label': 'Company transportation', 'value': 'CT'},
+                 {'label': 'Remote working', 'value': 'RW'}                   
+                ]
+
+sidebar_transport = html.Div(
+       [
+        dbc.Button("Match stops", id="match_stops", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
+        dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
+                  target="match_stops",
+                  body=True,
+                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
+        html.P([ html.Br(),'Choose number of buses'],id='buses_num',style={"margin-top": "15px","font-weight": "bold"}),
+        #dcc.Input(id="choose_buses", type="text", value='3'),
+        dcc.Slider(1, 10, 1,
+               value=2,
+               id='choose_buses'
+        ),
+        dbc.Button("Calculate routes", id="calc_routes", n_clicks=0,style={"margin-top": "15px"}),
+        html.P([ html.Br(),'Select route to visualize'],id='route_select',style={"margin-top": "15px", "font-weight": "bold"}),
+        dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route'),
+        dbc.Button("Visualize routes", id="visualize_routes", n_clicks=0,style={"margin-top": "15px"}),
+        html.Br(),               
+        html.Div(id='outdata', style={"margin-top": "15px"}),
+        dcc.Store(id='internal-value_stops', data=[]),
+        dcc.Store(id='internal-value_coworking', data=[]),        
+        dcc.Store(id='internal-value_routes', data=[])
+        ])
+
+sidebar_remote_work = html.Div(
+       [
+        html.P([ html.Br(),'Choose number of days of remote working'],id='remote_days_num',style={"margin-top": "15px","font-weight": "bold"}),
+        #dcc.Input(id="choose_buses", type="text", value='3'),
+        dcc.Slider(1, 7, 1,
+               value=3,
+               id='choose_remote_days'
+        ),
+        html.Br(),               
+        html.Div(id='outdata', style={"margin-top": "15px"}),
+        dcc.Store(id='internal-value_stops', data=[]),
+        dcc.Store(id='internal-value_coworking', data=[]),        
+        dcc.Store(id='internal-value_routes', data=[])
+        ])
+
 sidebar =  html.Div(
        [
         dbc.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
@@ -223,46 +265,15 @@ sidebar =  html.Div(
                   target="propose_stops",
                   body=True,
                   trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),      
-
-        dbc.Button("Match stops", id="match_stops", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
-        dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
-                  target="match_stops",
-                  body=True,
-                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
         html.P([ html.Br(),'Select action for markers'],id='action_select',style={"margin-top": "15px", "font-weight": "bold"}),
         dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action'),       
-        html.P([ html.Br(),'Choose number of buses'],id='buses_num',style={"margin-top": "15px","font-weight": "bold"}),
-        #dcc.Input(id="choose_buses", type="text", value='3'),
-        dcc.Slider(1, 10, 1,
-               value=2,
-               id='choose_buses'
-        ),
-        dbc.Button("Calculate routes", id="calc_routes", n_clicks=0,style={"margin-top": "15px"}),
-        html.P([ html.Br(),'Select route to visualize'],id='route_select',style={"margin-top": "15px", "font-weight": "bold"}),
-        dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route'),
-        dbc.Button("Visualize routes", id="visualize_routes", n_clicks=0,style={"margin-top": "15px"}),
-        html.Br(),               
-        html.Div(id='outdata', style={"margin-top": "15px"}),
-        dcc.Store(id='internal-value_stops', data=[]),
-        dcc.Store(id='internal-value_coworking', data=[]),        
-        dcc.Store(id='internal-value_routes', data=[])
-       ],
+        html.P([ html.Br(),'Select type of interventions'],id='intervention_select',style={"margin-top": "15px", "font-weight": "bold"}),
+        dcc.Dropdown(interventions, multi=False,style={"margin-top": "15px"}, id='choose_intervention'),
+        html.Div(id='sidebar_intervention', style={"margin-top": "15px"})
+        ],
+       id='sidebar',
        style=SIDEBAR_STYLE)
 
-"""
-content = html.Div(
-    [
-          html.Div([
-             html.Img(src=image1,style={'width':'40%', "display": "inlineBlock", "verticalAlign": "top"}),
-             html.Img(src=image2,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"}),
-          ]),
-          html.Div([dl.Map([dl.TileLayer()], center=center, zoom=12, id="map",style={'width': '100%', 'height': '50vh', 'margin': "auto", "display": "block"})
-          ])
-    ],
-    style=CONTENT_STYLE)
-
-app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
-"""
 
 content = html.Div(
        [
@@ -343,17 +354,30 @@ app.layout = dbc.Container(
 
 
 
+@app.callback([Output('sidebar_intervention','children',allow_duplicate=True)],
+              Input('choose_intervention',"value")
+              )
+def choose_intervention(interv):
+    print('chosen interv.: ', interv)
+    if interv == 'CT':
+        return [sidebar_transport]
+    if interv == 'RW':
+        return [sidebar_remote_work]
+
+
+
 @app.long_callback([Output("outdata", "children",allow_duplicate=True),
                Output('internal-value_routes','data',allow_duplicate=True),
                Output("choose_route", "options",allow_duplicate=True),
                Output('map','children',allow_duplicate=True)],
-              [State('choose_buses',"value")],
-              [State('internal-value_stops','data')],
-              [State('choose_CO2_lt','value')],
+              [State('choose_buses',"value"),
+              State('internal-value_stops','data'),
+              State('internal-value_coworking','data'),
+              State('choose_CO2_lt','value')],
               [Input("calc_routes", "n_clicks")],
               manager=long_callback_manager
               )
-def calc_routes(Nroutes,Stops,CO2km,Nclick):
+def calc_routes(Nroutes,St,Cow,CO2km,Nclick):
     import calcroutes_module
     import dash_leaflet as dl
     import generate_GTFS_module as gGTFS
@@ -362,11 +386,31 @@ def calc_routes(Nroutes,Stops,CO2km,Nclick):
     iconSize=[40,40],
     iconAnchor=[22, 40]
     )
+
+    custom_icon_coworking = dict(
+    iconUrl= "https://i.ibb.co/J2qXGKN/coworking-icon.png",
+    iconSize=[40,40],
+    iconAnchor=[22, 40]
+    )    
+    
     center = (43.26852347667122, -1.9741372404905988)
     
     #list_routes = range(1,int(Nroutes)+1)    
     list_routes = range(int(Nroutes))
     new_menu = [{'label': 'Route ' +str(i+1), 'value': i} for i in list_routes]
+    Stops = []
+    markers = []
+    print('Discriminating bus stops from coworking hubs...')
+    for i, pos in enumerate(St): 
+        if Cow[i]==1:
+             custom_icon = custom_icon_coworking
+        else:
+             custom_icon = custom_icon_bus
+             Stops.append(pos)
+        tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
+        markers.append(tmp)  
+
+    print('List of Stops generated')        
     print('\n')
     print('\n')
     print('Start calculating routes...')
@@ -375,7 +419,7 @@ def calc_routes(Nroutes,Stops,CO2km,Nclick):
     #print(routes_points_coords)
     gGTFS.gGTFS(routes, Stops, Graph)
     # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
-    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
+    #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
     newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"}) 
@@ -386,24 +430,24 @@ def calc_routes(Nroutes,Stops,CO2km,Nclick):
 #Output('map','children',allow_duplicate=True)
 
 @app.callback([Output('map','children',allow_duplicate=True)],
-              [State('choose_route',"value")],
-              [State('internal-value_stops','data')],
-              [State('internal-value_routes','data')],
+              [State('choose_route',"value"),
+              State('internal-value_stops','data'),
+              State('internal-value_coworking','data'),
+              State('internal-value_routes','data')],
               [Input("visualize_routes", "n_clicks")]
               )
-def visualize_route(Route,Stops,RoutesCoords,Nclick):
+def visualize_route(Route,St,Cow,RoutesCoords,Nclick):
     #Route = int(Route.split(' ')[1])-1
     Route = int(Route)-1    
     RoutesCoords = RoutesCoords[Route]
     markers = []
     for i, pos in enumerate(St): 
-           if i == int(marker_id) or Cow[i]==1:
-               custom_icon = custom_icon_coworking
-               Cow[i] = 1               
-           else:
-               custom_icon = custom_icon_bus
-           tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
-           markers.append(tmp)   
+        if Cow[i]==1:
+             custom_icon = custom_icon_coworking
+        else:
+             custom_icon = custom_icon_bus
+        tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
+        markers.append(tmp)     
     #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
     newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright"), dl.Polyline(positions=RoutesCoords)] + markers,
                      center=center, zoom=12, id="map",
