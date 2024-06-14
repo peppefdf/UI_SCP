@@ -1,5 +1,7 @@
 stop_id,stop_name,stop_lat,stop_lon, location_type, parent_station
-S0, GI-3722_Lategi, 43.247283013076, -1.9928333903080533, 0,  
-S1, 322 - Goiko Plaza - San Martin Eliza_Pio Baroja kalea, 43.2199540485036, -2.020814022300965, 0, S0
-S2, Zarautz 90_Zarautz kalea, 43.30526958939856, -2.004921256767726, 0, S0
-S3, 4_Hipodromo etorbidea, 43.26925962869178, -2.021490277262544, 0, S0
+S0, 5_Kale Nagusia, 43.26961589293281, -2.019981229455708, 0,  
+S1, Añorga_Añorgatxiki, 43.289485067174304, -1.997733459309872, 0, S0
+S2, Tolosa hiribidea_Ibaeta, 43.302278275927534, -2.0036754998067003, 0, S0
+S3, 322 - Goiko Plaza - San Martin Eliza_Pio Baroja kalea, 43.2199540485036, -2.020814022300965, 0, S0
+S4, 28_Aita Lertxundi kalea, 43.276635982445534, -2.1250529443717583, 0, S0
+S5, Usurbil_Kale Nagusia, 43.27037575328917, -2.0513670618722784, 0, S0
