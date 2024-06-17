@@ -492,7 +492,7 @@ def visualize_route(Route,St,Cow,RoutesCoords,Nclick):
         tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
         markers.append(tmp)     
       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
-      newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright"), dl.Polyline(positions=RoutesCoords)] + markers,
+      newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright"), dl.Polyline(positions=RoutesCoords, pathOptions={'weight':10})] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
       return [newMap]
@@ -700,4 +700,5 @@ def change_marker(St, Cow, stop_operation, *args):
 
 if __name__ == '__main__':
     #app.run_server(Debug=True)
-    app.run_server(port=8058,Debug=True)
+    #app.run_server(port=8058,Debug=True)
+    app.run_server(port=8058)
