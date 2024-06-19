@@ -286,13 +286,13 @@ content = html.Div(
     style=CONTENT_STYLE)
 
 
-# This dataframe has 244 lines, but 4 distinct values for `day`
+# plot test data
 df = px.data.tips()
 fig = px.pie(df, values='tip', names='day')
 fig.update_layout(showlegend=False)
 fig.update_layout(title_text='Transport share', title_x=0.5)
 indicators = html.Div(
-        [
+        [           
           html.P([ html.Br(),'Liters of gasoline per kilometer'],id='gas_km',style={"margin-top": "15px","font-weight": "bold"}),
           #dcc.Input(id="choose_gas_km", type="text", value='1.12'),
           dcc.Slider(0, 10,0.05,
@@ -308,13 +308,14 @@ indicators = html.Div(
                id='choose_CO2_lt',
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
-          ) , 
+          ),  
+          dbc.Button("Run Mode Choice", id="run_MCM", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),        
           html.Div([
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,6],"yellow":[6,8],"red":[8,10]}},
              value=2,
              label={'label':'CO2 emissions', 'style':{'font-size':'18px',"font-weight": "bold"}},
-             style = {"font-weight": "bold"},
+             style = {"margin-top": "20px","font-weight": "bold"},
              max=10,
              min=0)
              ]),
