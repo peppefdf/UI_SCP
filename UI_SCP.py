@@ -421,7 +421,8 @@ def choose_intervention(St,Cow,interv):
               )
 def calc_routes(Nroutes,St,Cow,CO2km,Nclick):
     if Nclick > 0:
-        
+      root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+      sys.path.append(root_dir + 'modules')  
       import calcroutes_module
       import dash_leaflet as dl
       import generate_GTFS_module as gGTFS
@@ -546,6 +547,8 @@ def match_stops(St,Cow,Nclick):
                Input("propose_stops", "n_clicks")]
               )
 def propose_stops(n_clusters,N):
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    sys.path.append(root_dir + 'modules')      
     import find_stops_module   
     n_clusters  = int(n_clusters)
     #filename = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Accessibility_Map/INPUT_stops.csv'
