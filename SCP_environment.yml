@@ -1,4 +1,4 @@
-name: SCP_test
+name: SCP_Python311_Spyder
 channels:
   - conda-forge
   - defaults
@@ -129,7 +129,7 @@ dependencies:
   - mapclassify=2.6.1=pyhd8ed1ab_0
   - markupsafe=2.1.5=py311ha68e1ae_0
   - matplotlib-base=3.8.4=py311h9b31f6e_2
-  - minizip=4.0.7=h52f1734_0
+#  - minizip=4.0.7=h52f1734_0
   - mkl=2024.1.0=h66d3029_692
   - msys2-conda-epoch=20160418=1
   - munkres=1.1.4=pyh9f0ad1d_0
