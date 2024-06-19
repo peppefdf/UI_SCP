@@ -273,7 +273,9 @@ content = html.Div(
              ],style= {'verticalAlign': 'top'}),
           dls.Clock(
                     children=[dl.Map([dl.TileLayer(),
-                    dl.ScaleControl(position="topright")], center=center, zoom=12, id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+                    dl.ScaleControl(position="topright")], center=center, 
+                                     zoom=12,
+                                     id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
                     ],
                     color="#435278",
                     speed_multiplier=1.5,
