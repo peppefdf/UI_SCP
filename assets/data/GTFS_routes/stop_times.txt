@@ -1,5 +1,5 @@
 trip_id,arrival_time,departure_time,stop_id,stop_sequence
-EZ_rou0_tr0, 10:25:31, 10:25:31, S0, 1
-EZ_rou0_tr0, 10:42:25, 10:44:25, S1, 3
-EZ_rou1_tr0, 10:53:56, 10:55:56, S3, 2
-EZ_rou1_tr0, 11:05:47, 11:07:47, S4, 3
+EZ_rou0_tr0, 12:12:32, 12:12:32, S0, 1
+EZ_rou0_tr0, 12:23:42, 12:25:42, S1, 3
+EZ_rou1_tr0, 12:40:39, 12:42:39, S3, 2
+EZ_rou1_tr0, 12:52:33, 12:54:33, S4, 3
