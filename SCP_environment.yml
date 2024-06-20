@@ -1,4 +1,4 @@
-name: SCP_Python311_Spyder
+name: SCP_MCM_Python311
 channels:
   - conda-forge
   - defaults

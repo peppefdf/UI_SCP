@@ -3,6 +3,7 @@ import networkx as nx
 from geopy.geocoders import Nominatim
 from geopy.point import Point
 import datetime
+from datetime import date
 
 directory = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/GTFS_routes/'
 
@@ -11,6 +12,7 @@ def gGTFS(ruta_EZ0, puntos, G):
     print()
     print('start generating GTFS file...')
     cont_stops = 0
+    cont_all_stops = 0
     trip_num = '0'
     stops_coord_written = []
     #ruta_EZ0 = list(ruta_EZ0.values())
@@ -21,6 +23,7 @@ def gGTFS(ruta_EZ0, puntos, G):
             #print(i_route, i, ruta_EZ0[i_route][i], puntos[ruta_EZ0[i_route][i]])
             print(i_route, ruta_EZ0[i_route][i], puntos[ruta_EZ0[i_route][i]])
     
+        """"
         ori_coord = ruta_stops_coord[0]
         origin = ori_coord
         origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
@@ -44,7 +47,30 @@ def gGTFS(ruta_EZ0, puntos, G):
            print('length (km): ',path_length/1000)
            print('time (min): ',path_time/60)
            times.append(path_time/60)
+        """
+        ori_coord = ruta_stops_coord[0]
+        origin = ori_coord
+        origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
+        times = []
+        for i in range(0,len(ruta_stops_coord)-1):           
+           destination = ruta_stops_coord[i+1]
+           destination_node = ox.distance.nearest_nodes(G, [destination[1]], [destination[0]])[0]
+           #route = nx.shortest_path(G, origin_node, destination_node)
+           #print(G.nodes[origin_node])
+           #print(G.nodes[destination_node])
     
+           # replace the previous code with the following:
+           route = nx.shortest_path(G, origin_node, destination_node, weight='length') # Returns a list of nodes comprising the route
+           path_length = 0
+           path_time = 0
+           for u, v in zip(route, route[1:]):
+               edge_length = G.get_edge_data(u,v)[0]['length']   # Returns length in meters, e.g. 50.26
+               path_length += edge_length
+               edge_travel_time = G.get_edge_data(u,v)[0]['travel_time'] # Returns travel time in secs
+               path_time += edge_travel_time
+           print('length (km): ',path_length/1000)
+           print('time (min): ',path_time/60)
+           times.append(path_time/60)        
     
         #test = nx.shortest_path(G, origin_node, destination_node)
         #for edge in G.out_edges(test, data=True):
@@ -61,27 +87,33 @@ def gGTFS(ruta_EZ0, puntos, G):
         # agency.txt
         # agency_id,agency_name,agency_url,agency_timezone
         header = "agency_id,agency_name,agency_url,agency_timezone"
+        agency_id = 'CSL_01'
         if i_route == 0:
            with open(directory + 'agency.txt', 'w') as f:
                f.write(header + "\n")
-               f.write('CSL_01, CSL@Gipuzkoa, https://www.media.mit.edu/groups/city-science/overview/, CET')
-           f.close()
-    
+               f.write(agency_id + ',' + 'CSL@Gipuzkoa, https://www.media.mit.edu/groups/city-science/overview/, CET')
+           f.close()      
+
         # stops.txt
         # stop_id,stop_name,stop_lat,stop_lon, location_type, parent_station
         # parent_station = ID of principal station/stop? = origin of buses?
         # key = stop_id
         stop_ids = []
+        stop_ids_unique = []
         header = "stop_id,stop_name,stop_lat,stop_lon, location_type, parent_station"
         geolocator = Nominatim(user_agent="coordinateconverter")
         if i_route == 0:
-           parent_station = 'S0'
+           parent_station = "" #'S0'
            with open(directory + 'stops.txt', 'w') as f:
                f.write(header + "\n")
-               f.close()
+               f.close()       
         with open(directory + 'stops.txt', 'a') as f:
                for i in range(len(ruta_stops_coord)):
                    stop_id = 'S' + str(cont_stops)
+                   if i == 0:
+                      stop_ids.append('S0')
+                   if i>0 and i < len(ruta_stops_coord)-1: # exclude last point which is the origin (point 0)
+                      stop_ids.append('S' + str(cont_all_stops))                       
                    lat = ruta_stops_coord[i][0]
                    lon = ruta_stops_coord[i][1]
                    stop_name = geolocator.reverse(Point(lat,lon))
@@ -94,30 +126,31 @@ def gGTFS(ruta_EZ0, puntos, G):
                       else:
                          f.write(stop_id + ', ' + stop_name + ', ' + str(lat) + ', ' + str(lon) + ', 0, ' + parent_station + "\n")
                       stops_coord_written.append([lat,lon])
-                      stop_ids.append(stop_id)
-                      #print('stop_id: ',stop_id)
-                      cont_stops+=1
+                      stop_ids_unique.append(stop_id)
+                      cont_stops+=1   
+                      cont_all_stops+=1
         f.close()
+
     
         # routes.txt
         # route_id,route_short_name,route_long_name,route_desc,route_type
         # key = route_id
         route_id = 'EZ' + str(i_route)
         route_type = '3' # bus
-        header = "route_id,route_short_name,route_long_name,route_desc,route_type"
+        header = "agency_id,route_id,route_short_name,route_long_name,route_desc,route_type"
         if i_route == 0:
            with open(directory + 'routes.txt', 'w') as f:
                f.write(header + "\n")
                f.close()
         with open(directory + 'routes.txt', 'a') as f:
-               f.write(route_id + ', ' + 'Esku_' + route_id + ', Eskuzaitzeta ' + str(i_route) + ', ' + 'The "Eskuzaitzeta" route serves workers of the industrial park,' + route_type + '\n')
+               f.write(agency_id + ',' + route_id + ', ' + 'Esku_' + route_id + ', Eskuzaitzeta ' + str(i_route) + ', ' + 'The "Eskuzaitzeta" route serves workers of the industrial park,' + route_type + '\n')
                f.close()
     
         # trips.txt
         # route_id,service_id,trip_id,trip_headsign,block_id
         # key = trip_id
         trip_id = 'EZ_rou' + str(i_route) + '_tr' + trip_num #'EZ0'
-        service_id = '1'
+        service_id = 'EZ'
         header = 'route_id, trip_id, service_id'
         if i_route == 0:
            with open(directory + 'trips.txt', 'w') as f:
@@ -127,37 +160,53 @@ def gGTFS(ruta_EZ0, puntos, G):
             f.write(route_id + ', ' + trip_id + ', ' + service_id + '\n' )
         f.close()
     
+        # calendar.txt
+        header = "service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date"
+        today = date.today()
+        this_year = str(today.strftime("%Y"))
+        first_MonthDay = "0101"
+        last_MonthDay = "1231"
+        if i_route == 0:
+           with open(directory + 'calendar.txt', 'w') as f:
+               f.write(header + "\n")
+               f.write(service_id +',' +'1,1,1,1,1,0,0,' + this_year+first_MonthDay + ',' + this_year+last_MonthDay)
+           f.close()
+
+        # calendar_dates.txt
+        header = "service_id,date,exception_type"
+        service_off = "2"
+        service_on = "1" 
+        substitute = service_id + "_sub"
+        MonthDays = [this_year+"0101",this_year+"0106",this_year+"0401",this_year+"0501"]              
+        if i_route == 0:
+           with open(directory + 'calendar_dates.txt', 'w') as f:
+               f.write(header + "\n")
+               for i_OffOn in MonthDays: 
+                   f.write( service_id + ',' + i_OffOn + ','+ service_off + "\n") 
+                   f.write( substitute + ',' + i_OffOn + ','+ service_on + "\n") 
+           f.close()
+
+
         # stop_times.txt
         # key = stop_sequence
-        header = "trip_id,arrival_time,departure_time,stop_id,stop_sequence"
+        timepoint = '0' # arrival/departure times are approximate
+        header = "trip_id,arrival_time,departure_time,stop_id,stop_sequence,timepoint"
         if i_route == 0:
            date_and_time = datetime.datetime.now()+datetime.timedelta(hours=1)
            with open(directory + 'stop_times.txt', 'w') as f:
                f.write(header + "\n")
-               #t0 = date_and_time.strftime("%H:%M:%S")
-               #f.write(trip_id + ", " + t0 + ', ' + t0 + ', ' + 'S0' + ', ' + '1' + "\n")
                f.close()
-    
+
         with open(directory + 'stop_times.txt', 'a') as f:
             for i in range(len(times)):
-                time_change = datetime.timedelta(minutes=2)
+                time_change = datetime.timedelta(minutes=1)
                 new_time = date_and_time + time_change
                 t0 = date_and_time.strftime("%H:%M:%S")
                 t1 = new_time.strftime("%H:%M:%S")
-                if i_route == 0 and i == 0:
-                      f.write(trip_id + ", " + t0 + ', ' + t0 + ', ' + stop_ids[0] + ', ' + '1' + "\n")
-                      if len(times) == 1:
-                         time_change = datetime.timedelta(minutes=times[i])
-                         new_time = date_and_time + time_change
-                         t0 = new_time.strftime("%H:%M:%S")
-                         time_change = datetime.timedelta(minutes=2)
-                         new_time = new_time + time_change
-                         t1 = new_time.strftime("%H:%M:%S")
-                         f.write(trip_id + ", " + t0 + ', ' + t1 + ', ' + stop_ids[1] + ', ' + '2' + "\n")
-                else:
-                   f.write(trip_id + ", " + t0 + ', ' + t1 + ', ' + stop_ids[i] + ', ' + str(i+2) + "\n")
+                print('route, i, stop_ids')
+                print(i_route, i, stop_ids, stop_ids_unique)
+                #print('route, len(times), len(stops_id), stop times, stop_id: ', i_route, len(times), len(stop_id), i, stop_ids[i + i_route*(cont_all_stops-1)])
+                f.write(trip_id + ", " + t0 + ', ' + t1 + ', ' + stop_ids[i] + ', ' + str(i+1) + ', ' + timepoint + "\n")
                 time_change = datetime.timedelta(minutes=times[i])
                 date_and_time = new_time + time_change
-                #print('stop times, stop_id: ', i_route, i, stop_ids[i])
         f.close()
-
