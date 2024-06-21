@@ -214,7 +214,7 @@ def gGTFS(ruta_EZ0, puntos, G):
                     print('route, i, stop_ids')
                     print(i_route, i, stop_ids, stop_ids_unique)
                     #print('route, len(times), len(stops_id), stop times, stop_id: ', i_route, len(times), len(stop_id), i, stop_ids[i + i_route*(cont_all_stops-1)])
-                    f.write(trip_id + ", " + t0 + ', ' + t1 + ', ' + stop_ids[i] + ', ' + str(i+1) + ', ' + timepoint + "\n")
+                    f.write(trip_id + '_' + str(i_h) + ", " + t0 + ', ' + t1 + ', ' + stop_ids[i] + ', ' + str(i+1) + ', ' + timepoint + "\n")
                     time_change = datetime.timedelta(minutes=times[i])
                     date_and_time = new_time + time_change
         f.close()
