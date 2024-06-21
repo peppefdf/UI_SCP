@@ -51,6 +51,7 @@ def gGTFS(ruta_EZ0, puntos, G):
         ori_coord = ruta_stops_coord[0]
         origin = ori_coord
         origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
+        hours = ["8:00","8:15","8:30","8:45"]
         times = []
         for i in range(0,len(ruta_stops_coord)-1):           
            destination = ruta_stops_coord[i+1]
@@ -145,7 +146,7 @@ def gGTFS(ruta_EZ0, puntos, G):
         with open(directory + 'routes.txt', 'a') as f:
                f.write(agency_id + ',' + route_id + ', ' + 'Esku_' + route_id + ', Eskuzaitzeta ' + str(i_route) + ', ' + 'The "Eskuzaitzeta" route serves workers of the industrial park,' + route_type + '\n')
                f.close()
-    
+
         # trips.txt
         # route_id,service_id,trip_id,trip_headsign,block_id
         # key = trip_id
@@ -157,7 +158,8 @@ def gGTFS(ruta_EZ0, puntos, G):
                f.write(header + "\n")
                f.close()
         with open(directory + 'trips.txt', 'a') as f:
-            f.write(route_id + ', ' + trip_id + ', ' + service_id + '\n' )
+            for i_h in range(len(hours)):
+                f.write(route_id + ', ' + trip_id + '_' + str(i_h) + ' ,' + service_id + '\n' )
         f.close()
     
         # calendar.txt
@@ -192,21 +194,28 @@ def gGTFS(ruta_EZ0, puntos, G):
         timepoint = '0' # arrival/departure times are approximate
         header = "trip_id,arrival_time,departure_time,stop_id,stop_sequence,timepoint"
         if i_route == 0:
-           date_and_time = datetime.datetime.now()+datetime.timedelta(hours=1)
+           #date_and_time = datetime.datetime.now()+datetime.timedelta(hours=1)
            with open(directory + 'stop_times.txt', 'w') as f:
                f.write(header + "\n")
                f.close()
 
-        with open(directory + 'stop_times.txt', 'a') as f:
-            for i in range(len(times)):
-                time_change = datetime.timedelta(minutes=1)
-                new_time = date_and_time + time_change
-                t0 = date_and_time.strftime("%H:%M:%S")
-                t1 = new_time.strftime("%H:%M:%S")
-                print('route, i, stop_ids')
-                print(i_route, i, stop_ids, stop_ids_unique)
-                #print('route, len(times), len(stops_id), stop times, stop_id: ', i_route, len(times), len(stop_id), i, stop_ids[i + i_route*(cont_all_stops-1)])
-                f.write(trip_id + ", " + t0 + ', ' + t1 + ', ' + stop_ids[i] + ', ' + str(i+1) + ', ' + timepoint + "\n")
-                time_change = datetime.timedelta(minutes=times[i])
-                date_and_time = new_time + time_change
+
+        for i_h in range(len(hours)):
+            today = datetime.datetime.now() 
+            hour = int(hours[i_h].split(':')[0])
+            minutes = int(hours[i_h].split(':')[1])
+            date_and_time = datetime.datetime(today.year, today.month, today.day, hour, minutes)
+            with open(directory + 'stop_times.txt', 'a') as f:
+                for i in range(len(times)):
+                    time_change = datetime.timedelta(minutes=1)
+                    new_time = date_and_time + time_change
+                    t0 = date_and_time.strftime("%H:%M:%S")
+                    t1 = new_time.strftime("%H:%M:%S")
+                    print('route, i, stop_ids')
+                    print(i_route, i, stop_ids, stop_ids_unique)
+                    #print('route, len(times), len(stops_id), stop times, stop_id: ', i_route, len(times), len(stop_id), i, stop_ids[i + i_route*(cont_all_stops-1)])
+                    f.write(trip_id + ", " + t0 + ', ' + t1 + ', ' + stop_ids[i] + ', ' + str(i+1) + ', ' + timepoint + "\n")
+                    time_change = datetime.timedelta(minutes=times[i])
+                    date_and_time = new_time + time_change
         f.close()
+
