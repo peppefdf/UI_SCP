@@ -113,11 +113,14 @@ def FindStops(workers_df, stops_df, n_clusters, cutoff):
         fig,ax = plt.subplots()
         ax.contourf(y, x, z, levels=20)
         ax.axis('scaled')
+
+        """
         #plt.scatter(Y,X, marker = 'o', alpha=0.5, color='white')
         plt.scatter(Lons,Lats, marker = 'o', alpha=0.5, color='white')
         plt.scatter(highestDP[1], highestDP[0], s=48, marker="x", color='black')
         #plt.savefig('/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Point_density_cluster_'+str(cluster)+'.png')
         plt.show()
+        """
 
         # find local maxima
         local_maxima_locations = detect_local_minima(-z)
