@@ -784,5 +784,6 @@ def change_marker(St, Cow, stop_operation, *args):
 
 if __name__ == '__main__':
     #app.run_server(Debug=True)
-    #app.run_server(port=8058,Debug=True)
-    app.run_server(port=8058)
+    app.run_server(port=8058,Debug=True)
+    #app.run_server(port=8058)
+    #app.run_server(port=8058,host= '0.0.0.0')
