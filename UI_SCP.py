@@ -226,7 +226,7 @@ sidebar =  html.Div(
         dcc.Upload(
              id='upload-data',
              children=html.Div([
-                       html.A('Select Files')
+                       html.A('Import Files')
                        ]),
              style={
                   'width': '100%',
