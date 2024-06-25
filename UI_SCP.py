@@ -620,10 +620,11 @@ def match_stops(St,Cow,Nclick):
       return [len(St),St,newMap]
 
 
+               
 #@app.callback([Output("clickdata", "children")],
-@app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
-              [State("n_clusters", "value"),
-               Input("propose_stops", "n_clicks")]
+@app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('internal-value_coworking','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
+              State("n_clusters", "value"),
+              Input("propose_stops", "n_clicks")
               )
 def propose_stops(n_clusters,N):
     root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
@@ -643,15 +644,17 @@ def propose_stops(n_clusters,N):
     #    out = out + str(St.loc[i,['Lat']]) + ', ' + str(St.loc[i,['Lon']]) + '; '
     out = ''
     St = []
+    Cow = []
     for ind in bus_stops_df.index:
          out = out + str(bus_stops_df['Lat'][ind]) + ',' + str(bus_stops_df['Lon'][ind]) +';'
          St.append((bus_stops_df['Lat'][ind],bus_stops_df['Lon'][ind]))
+         Cow.append(0)
     markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
     newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
     #return [out,St,newMap]
-    return [out,St,newMap]
+    return [out,St,Cow,newMap]
 
 @app.callback([Output('map','children',allow_duplicate=True)],
                [Input("show_workers", "n_clicks")]
