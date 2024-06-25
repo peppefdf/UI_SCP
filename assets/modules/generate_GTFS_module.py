@@ -51,7 +51,7 @@ def gGTFS(ruta_EZ0, puntos, G):
         ori_coord = ruta_stops_coord[0]
         origin = ori_coord
         origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
-        hours = ["8:00","8:15","8:30","8:45"]
+        hours = ["8:00","8:15","8:30","8:45"] # hours of the service. Each route has a trip at these hours 
         times = []
         for i in range(0,len(ruta_stops_coord)-1):           
            destination = ruta_stops_coord[i+1]
