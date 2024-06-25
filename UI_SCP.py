@@ -41,6 +41,7 @@ import plotly.express as px
 import base64
 import datetime
 import io
+from io import StringIO
 
 #import re
 import json
@@ -241,7 +242,8 @@ sidebar =  html.Div(
              # Allow multiple files to be uploaded
              multiple=True
         ),
-        html.Div(id='output-data-upload'),
+        dcc.Store(id='worker_data', data=[]),
+
         dbc.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
         html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
@@ -365,13 +367,18 @@ app.layout = dbc.Container(
 # Folder navigator ###############################################################
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
-
+    temp_file = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_workers_data.csv'
     decoded = base64.b64decode(content_string)
     try:
         if 'csv' in filename:
             # Assume that the user uploaded a CSV file
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')))
+            #tmp = io.StringIO(decoded.decode('utf-8'))
+            #print(dir(tmp))
+            #print(decoded)
+            #print(decoded.decode('utf-8'))
+            #print(io.StringIO(decoded.decode('utf-8')))
         elif 'xls' in filename:
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
@@ -380,7 +387,8 @@ def parse_contents(contents, filename, date):
         return html.Div([
             'There was an error processing this file.'
         ])
-
+    return df.to_csv(temp_file, index=False)  
+    """
     return html.Div([
         html.H5(filename),
         html.H6(datetime.datetime.fromtimestamp(date)),
@@ -399,8 +407,8 @@ def parse_contents(contents, filename, date):
             'wordBreak': 'break-all'
         })
     ])
-
-@callback(Output('output-data-upload', 'children'),
+    """
+@callback(Output('worker_data', 'data'),
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'))
@@ -409,7 +417,15 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         children = [
             parse_contents(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates)]
-        return children
+        #[print(c, n, d) for c, n, d in
+        #    zip(list_of_contents, list_of_names, list_of_dates)]
+        #return children
+        #content_type, content_string = list_of_contents[0].split(',')
+        #decoded = base64.b64decode(content_string)
+        #filename = io.StringIO(decoded.decode('utf-8'))
+        works_data = children
+        #print('workers dataframe?', works_data)
+        return works_data
 ############################################################################################
 
 
@@ -614,15 +630,12 @@ def propose_stops(n_clusters,N):
     sys.path.append(root_dir + 'modules')      
     import find_stops_module   
     n_clusters  = int(n_clusters)
-    #filename = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Accessibility_Map/INPUT_stops.csv'
-    #filename = 'C:/Users/gfotidellaf/Desktop/CSL_Gipuzkoa/Accessibility/assets/INPUT_stops.csv'
-    #filename = './assets/data/INPUT_stops.csv'
-    #n_clusters = 19
     cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max
-    root_dir = './assets/data/'
     #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
-    stops_DF = pd.read_csv(root_dir + "all_bus_stops.csv", encoding='latin-1')
+    #workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
+    temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
+    workers_DF = pd.read_csv(temp_file)    
+    stops_DF = pd.read_csv(root_dir + 'data/'+ "all_bus_stops.csv", encoding='latin-1')
     bus_stops_df,model,yhat = find_stops_module.FindStops(workers_DF, stops_DF, n_clusters, cutoff)
     #df = pd.read_csv(filename)
     #out=St.loc[:'Lat']
@@ -644,8 +657,8 @@ def propose_stops(n_clusters,N):
                [Input("show_workers", "n_clicks")]
               )
 def show_workers(N):
-    root_dir = './assets/data/'
-    workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
+    temp_file = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_workers_data.csv'
+    workers_DF = pd.read_csv(temp_file)
     St = []
     for ind in workers_DF.index:
          St.append((workers_DF['O_lat'][ind],workers_DF['O_long'][ind]))
