@@ -209,19 +209,6 @@ interventions = [{'label': 'Company transportation', 'value': 'CT'},
                 ]
  
 
-
-filenames = listdir(root_dir+'data')
-files = [ filename for filename in filenames if filename.endswith( '.csv' ) ]
-#folders = ["assets","cache"]
-controls = [
-    dcc.Dropdown(
-        id="dropdown_folders",
-        options=[{"label": x, "value": x} for x in files],
-        value=[],
-    )
-]
-
-
 sidebar =  html.Div(
        [
         dcc.Upload(
@@ -267,11 +254,11 @@ sidebar =  html.Div(
         dbc.Popover(dcc.Markdown(mouse_over_mess_stops, dangerously_allow_html=True),
                   target="propose_stops",
                   body=True,
-                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),      
-        html.P([ html.Br(),'Select action for markers'],id='action_select',style={"margin-top": "15px", "font-weight": "bold"}),
-        dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action'),       
+                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),          
         html.P([ html.Br(),'Select type of interventions'],id='intervention_select',style={"margin-top": "15px", "font-weight": "bold"}),
         dcc.Dropdown(interventions, multi=False,style={"margin-top": "15px"}, id='choose_intervention'),
+        html.P([ html.Br(),'Select action for markers'],id='action_select',style={"margin-top": "15px", "font-weight": "bold"}),
+        dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action'),           
         html.Div([
                  html.Div(id='outdata', style={"margin-top": "15px"}),
                  dcc.Store(id='internal-value_stops', data=[]),
@@ -412,7 +399,7 @@ def parse_contents(contents, filename, date):
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'))
-def update_output(list_of_contents, list_of_names, list_of_dates):
+def load_worker_data(list_of_contents, list_of_names, list_of_dates):
     if list_of_contents is not None:
         children = [
             parse_contents(c, n, d) for c, n, d in
@@ -474,6 +461,14 @@ def choose_intervention(St,Cow,interv):
                 dcc.Slider(1, 7, 1,
                        value=3,
                        id='choose_remote_days'
+                ),
+                html.P([ html.Br(),'Choose "%" of remote workers'],id='remote_workers_num',style={"margin-top": "15px","font-weight": "bold"}),
+                #dcc.Input(id="choose_buses", type="text", value='3'),
+                dcc.Slider(0, 100, 5,
+                       value=30,
+                       id='choose_remote_workers',
+                       marks=None,
+                       tooltip={"placement": "bottom", "always_visible": True}                       
                 ),
                 html.Br(),               
                 html.Div(id='outdata', style={"margin-top": "15px"}),
@@ -784,6 +779,6 @@ def change_marker(St, Cow, stop_operation, *args):
 
 if __name__ == '__main__':
     #app.run_server(Debug=True)
-    app.run_server(port=8058,Debug=True)
-    #app.run_server(port=8058)
+    #app.run_server(port=8058,Debug=True)
+    app.run_server(port=8058)
     #app.run_server(port=8058,host= '0.0.0.0')
