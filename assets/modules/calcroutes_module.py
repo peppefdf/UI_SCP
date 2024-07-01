@@ -228,8 +228,10 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       print()
       print('Adding edge speeds, lengths and travelling speeds...')
       #hwy_speeds = {"residential": 30, "secondary": 30, "tertiary": 30}
-      hwy_speeds = {"residential": 20, "unclassified": 30, "maxspeed": 100 }
-      #hwy_speeds = {"primary": 20, "residential": 20, "unclassified": 30, "maxspeed": 50 }
+      #hwy_speeds = {"residential": 20, "unclassified": 30, "maxspeed": 100 }
+      #hwy_speeds = {"residential": 80, "unclassified": 60, "maxspeed": 100 }
+      #hwy_speeds = {"primary": 100, "residential": 60, "unclassified": 50, "maxspeed": 100 }
+      hwy_speeds = {"motorway": 100, "trunk": 100, "primary": 100, "residential": 60, "unclassified": 50, "maxspeed": 100 }
       G = ox.add_edge_speeds(G, hwy_speeds)
       #G = ox.add_edge_speeds(G)
       G = ox.add_edge_travel_times(G)
