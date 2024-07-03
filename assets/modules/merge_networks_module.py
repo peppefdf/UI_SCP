@@ -43,8 +43,6 @@ q=8
 
 # # Load data to an Urban Access TRANSIT data object
 
-# In[2]:
-
 t0 = time.time()
 # I manually add all the feeds from the bus transit companies of Gipuzkoa
 """
@@ -88,89 +86,66 @@ bbox = (Long_min,Lat_min,Long_max,Lat_max,)
 remove_stops_outsidebbox = True
 append_definitions = True
 
+filen = 'transit_ped_net.h5'
+root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/input_data_MCM/networks/'
+gtfsfeed_path = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/input_data_MCM/GTFS_feeds/'
+
+timerange=['08:00:00', '09:00:00']
 
 urbanaccess_net = ua.network.ua_network
 
-loaded_feeds = ua.gtfs.load.gtfsfeed_to_df(gtfsfeed_path="C:/Users/gfotidellaf/data/gtfsfeed_text",
+loaded_feeds = ua.gtfs.load.gtfsfeed_to_df(gtfsfeed_path=gtfsfeed_path,
                                            validation=validation,
                                            verbose=verbose,
                                            bbox=bbox,
                                            remove_stops_outsidebbox=remove_stops_outsidebbox,
                                            append_definitions=append_definitions)
 
-# Create transit network
+# Create transit network from existing feeds
 ua.gtfs.network.create_transit_net(gtfsfeeds_dfs=loaded_feeds,
                                    day='monday',
-                                   timerange=['08:00:00', '09:00:00'],
+                                   timerange=timerange,
                                    calendar_dates_lookup=None)
 
-#filen = 'C:/Users/gfotidellaf/data/saved_network_h5/integrated_base_network.h5'
-filen = 'C:/Users/gfotidellaf/data/saved_network_h5/pedestrian_net.h5'
-if (os.path.isfile(filen)):
+
+if (os.path.isfile(root_dir + filen)):
     
-    print('\nLoading saved transit and pedestrian networks...') 
+    print('\nLoading saved network...') 
     #saved_transit_net = ua.network.load_network(filename='saved_network_h5/integrated_base_network.h5')
-    ped_net = ua.network.load_network(filename='saved_network_h5/pedestrian_net.h5')
+    #ped_net = ua.network.load_network(filename='saved_network_h5/pedestrian_net.h5')
+    transit_ped_net = ua.network.load_network(dir=root_dir, filename=filen)
     print('done!\n')
 
     # Crear la red de OSM (pedestrian)
     print('\nCreating pedestrian network from saved file...')
-    ua.osm.network.create_osm_net(osm_edges=ped_net.net_edges, osm_nodes=ped_net.net_nodes, travel_speed_mph=3)
+    ua.osm.network.create_osm_net(osm_edges=transit_ped_net.net_edges, osm_nodes=transit_ped_net.net_nodes, travel_speed_mph=3)
     print('done!\n')
 
-    """
-    print('\nLoad user-defined transit network feeds...') 
-    new_loaded_feeds = ua.gtfs.load.gtfsfeed_to_df(gtfsfeed_path="C:/Users/gfotidellaf/data/private_bus_routes_text",
-                                           validation=validation,
-                                           verbose=verbose,
-                                           bbox=bbox,
-                                           remove_stops_outsidebbox=remove_stops_outsidebbox,
-                                           append_definitions=append_definitions)
-    
-    print('done!\n')
-    """
-    
-    """
-    print()
-    print('trips:')
-    print(new_loaded_feeds.trips.head())
-    print()
-    print('stops:')
-    print(new_loaded_feeds.stops.head())
-    print()
-    print('stop times:')
-    print(new_loaded_feeds.stop_times.head())
-    """
-    
-    """
-    print('\nCreating user-defined transit network...')
-    # Create transit network
-    ua.gtfs.network.create_transit_net(gtfsfeeds_dfs=new_loaded_feeds,
-                                   day='monday',
-                                   timerange=['08:00:00', '09:00:00'],
-                                   calendar_dates_lookup=None)
-    print('done!\n')
-    """
-    print('\nIntegrating all networks...')
+    print('\nIntegrating saved network with new transit network...')
     # Integrate saved and newly created tansit network
     #ua.network.integrate_network(urbanaccess_network=saved_transit_net,
     #                         headways=False) 
     ua.network.integrate_network(urbanaccess_network=urbanaccess_net,
-                             headways=False)     
+                                    headways=False)     
+
+    # Add average headways to network travel time
+    ua.gtfs.headways.headways(gtfsfeeds_df=loaded_feeds,
+                            headway_timerange=timerange)
+    loaded_feeds.headways
+
+    ua.network.integrate_network(urbanaccess_network=urbanaccess_net,
+                                headways=True,
+                                urbanaccess_gtfsfeeds_df=loaded_feeds,
+                                headway_statistic='mean')  
     print('successfully integrated existing and newly created networks!')
-    #ua.plot.plot_net(nodes=saved_transit_net.net_nodes,
-    #             edges=saved_transit_net.net_edges,
-    #             bbox=bbox,
-    #             fig_height=30, margin=0.02,
-    #             edge_color='#999999', edge_linewidth=1, edge_alpha=1,
-    #             node_color='black', node_size=1.1, node_alpha=1, node_edgecolor='none', node_zorder=3, nodes_only=False)
+    """
     ua.plot.plot_net(nodes=urbanaccess_net.net_nodes,
                  edges=urbanaccess_net.net_edges,
                  bbox=bbox,
                  fig_height=30, margin=0.02,
                  edge_color='#999999', edge_linewidth=1, edge_alpha=1,
                  node_color='black', node_size=1.1, node_alpha=1, node_edgecolor='none', node_zorder=3, nodes_only=False)
-
+    """
 else:
 
     nodes, edges = ua.osm.load.ua_network_from_bbox(bbox=bbox, remove_lcn=True)
@@ -178,38 +153,106 @@ else:
     ua.osm.network.create_osm_net(osm_edges=edges, osm_nodes=nodes, travel_speed_mph=3)
     # integrate transit and pedestrian networks
     
+    # Add average headways to network travel time
+    ua.gtfs.headways.headways(gtfsfeeds_df=loaded_feeds,
+                            headway_timerange=timerange)
+    loaded_feeds.headways
+
     ua.network.integrate_network(urbanaccess_network=urbanaccess_net,
-                             headways=False)
-    print(dir(urbanaccess_net))
-    print(urbanaccess_net.net_nodes.head())  
-    print(urbanaccess_net.net_edges.head())    
-    #print(urbanaccess_net.net_nodes['zone_id'])
-    print('net_edges[distance:]')
-    print(urbanaccess_net.net_edges['distance'].head())
+                                headways=True,
+                                urbanaccess_gtfsfeeds_df=loaded_feeds,
+                                headway_statistic='mean')  
 
-    print('edges[distance]:')
-    print(edges['distance'].head())
-    print('edges[weigth]:')
-    print(edges[['weight']].head())
-    print('edges[weigth]: 2')
-    print(edges['weight'].head())
+    #urbanaccess_net.net_nodes['zone_id'] = urbanaccess_net.net_nodes['zone_id'].astype(str)
 
-    urbanaccess_net.net_nodes['zone_id'] = urbanaccess_net.net_nodes['zone_id'].astype(str)
-    """
-    ped_net_pdna = pdna.network.Network(
-                               nodes["x"],
-                               nodes["y"],
-                               edges["from"],
-                               edges["to"],
-                               edges[["weight","distance"]])
-    """
-    ped_net_pdna = pdna.network.Network(
+    integrated_net_pdna = pdna.network.Network(
                                urbanaccess_net.net_nodes["x"],
                                urbanaccess_net.net_nodes["y"],
                                urbanaccess_net.net_edges["from_int"],
                                urbanaccess_net.net_edges["to_int"],
                                urbanaccess_net.net_edges[["weight","distance"]])
 
-    ped_net_pdna.save_hdf5('C:/Users/gfotidellaf/data/saved_network_h5/pedestrian_net.h5')
-    #ua.network.save_network(urbanaccess_net, 'integrated_base_network.h5', dir='C:/Users/gfotidellaf/data/saved_network_h5/', overwrite_key=True, overwrite_hdf5=True)  
+    integrated_net_pdna.save_hdf5(root_dir + filen)
     
+t1 = time.time()
+print('Total time:')
+print((t1-t0)/60)
+"""
+# Crear un diccionario con dos columnas, una para el rango de tiempo y otra para el nombre del archivo
+q=8
+# Definir los valores dados
+timeranges = [
+    ['00:00:00', '01:00:00'], ['01:00:00', '02:00:00'], ['02:00:00', '03:00:00'], ['03:00:00', '04:00:00'],
+    ['04:00:00', '05:00:00'], ['05:00:00', '06:00:00'], ['06:00:00', '07:00:00'], ['07:00:00', '08:00:00'],
+    ['08:00:00', '09:00:00'], ['09:00:00', '10:00:00'], ['10:00:00', '11:00:00'], ['11:00:00', '12:00:00'],
+    ['12:00:00', '13:00:00'], ['13:00:00', '14:00:00'], ['14:00:00', '15:00:00'], ['15:00:00', '16:00:00'],
+    ['16:00:00', '17:00:00'], ['17:00:00', '18:00:00'], ['18:00:00', '19:00:00'], ['19:00:00', '20:00:00'],
+    ['20:00:00', '21:00:00'], ['21:00:00', '22:00:00'], ['22:00:00', '23:00:00'], ['23:00:00', '24:00:00']
+]
+nombres_archivos = [
+    'transit_0001.h5', 'transit_0102.h5', 'transit_0203.h5', 'transit_0304.h5',
+    'transit_0405.h5', 'transit_0506.h5', 'transit_0607.h5', 'transit_0708.h5',
+    'transit_0809.h5', 'transit_0910.h5', 'transit_1011.h5', 'transit_1112.h5',
+    'transit_1213.h5', 'transit_1314.h5', 'transit_1415.h5', 'transit_1516.h5',
+    'transit_1617.h5', 'transit_1718.h5', 'transit_1819.h5', 'transit_1920.h5',
+    'transit_2021.h5', 'transit_2122.h5', 'transit_2223.h5', 'transit_2324.h5'
+]
+timeranges=[timeranges[q]]
+nombres_archivos=[nombres_archivos[q]]
+print(timeranges)
+print(nombres_archivos)
+
+# # Definir los valores dados
+# timeranges = [
+#     ['04:00:00', '05:00:00'], ['05:00:00', '06:00:00'], ['06:00:00', '07:00:00'], ['07:00:00', '08:00:00'],
+# ]
+# nombres_archivos = [
+#     'transit_0405.h5', 'transit_0506.h5', 'transit_0607.h5', 'transit_0708.h5',
+# ]
+
+
+for timerange, nombre_archivo in zip(timeranges, nombres_archivos):
+    # Create transit network
+
+    transit_net = ua.gtfs.network.create_transit_net(gtfsfeeds_dfs=loaded_feeds,day='monday',timerange=timerange,calendar_dates_lookup=None)
+    urbanaccess_net = ua.network.ua_network
+
+    # Create integrated network
+    ua.network.integrate_network(urbanaccess_network=urbanaccess_net,
+                           headways=False)
+
+    # Add average headways to network travel time
+    ua.gtfs.headways.headways(gtfsfeeds_df=loaded_feeds,
+                          headway_timerange=timerange)
+    loaded_feeds.headways
+
+    ua.network.integrate_network(urbanaccess_network=urbanaccess_net,
+                             headways=True,
+                             urbanaccess_gtfsfeeds_df=loaded_feeds,
+                             headway_statistic='mean')
+
+    # Create
+    s_time = time.time()
+    transit_ped_net = pdna.network.Network(urbanaccess_net.net_nodes["x"],
+                               urbanaccess_net.net_nodes["y"],
+                               urbanaccess_net.net_edges["from_int"],
+                               urbanaccess_net.net_edges["to_int"],
+                               urbanaccess_net.net_edges[["weight"]],
+                               twoway=False)
+    print('Took {:,.2f} seconds'.format(time.time() - s_time))
+
+    # Save
+    transit_ped_net.save_hdf5(f'C:/Users/gfotidellaf/input_data/transit_together_24h/{nombre_archivo}')
+
+    # Save picture
+    # edgecolor = ua.plot.col_colors(df=urbanaccess_net.net_edges, col='weight', cmap='gist_heat_r', num_bins=5)
+    # ua.plot.plot_net(nodes=urbanaccess_net.net_nodes,
+    #                    edges=urbanaccess_net.net_edges[urbanaccess_net.net_edges['net_type']=='transit'],
+    #                    bbox=bbox,
+    #                    fig_height=30, margin=0.02,
+    #                    edge_color=edgecolor, edge_linewidth=1, edge_alpha=1,
+    #                    node_color='black', node_size=0, node_alpha=1, node_edgecolor='none', node_zorder=3, nodes_only=False)
+
+    # # Guardar la figura en el disco. Asegúrate de especificar la ruta completa y el nombre de archivo deseado.
+    # plt.savefig(f'/content/drive/MyDrive/Mobility_Choice/input_data/transit_together_24h/images/{nombre_archivo}.pdf', dpi=300)
+"""
