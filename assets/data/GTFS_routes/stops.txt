@@ -1,4 +1,7 @@
 stop_id,stop_name,stop_lat,stop_lon,location_type,parent_station
-1230, 1_Donostia etorbidea, 43.27005546859397, -2.0197893377397365, 0,  
-1231, Tolosa hiribidea_Ondarreta, 43.31286160574794, -2.006104490421188, 0, 
-1232, 8_Boulevard zumardia, 43.322314929557145, -1.9834178050405529, 0, 
+1230, Askatasuna/Libertad 15_Askatasunaren hiribidea, 43.319844916467645, -1.9810787995044232, 0,  
+1231, Plaza Vasconia_Mirakruz kalea, 43.32225643410722, -1.9718380120512933, 0, 
+1232, Apaiztegia/Seminario Heriz 82_Heriz pasealekua, 43.31078023459624, -2.002846094712362, 0, 
+1233, Larrekoetxe_Lasarte-Oria, 43.26871190817735, -2.016422274336444, 0, 
+1234, Argi_Nafarroa etorbidea, 43.286664477799306, -2.174934274289196, 0, 
+1235, 28_Aita Lertxundi kalea, 43.27663598244553, -2.1250529443717583, 0, 
