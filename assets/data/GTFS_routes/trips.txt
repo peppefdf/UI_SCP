@@ -13,3 +13,10 @@ EZ1,EZ_rou1_tr0_3,EZ
 EZ1,EZ_rou1_tr0_4,EZ
 EZ1,EZ_rou1_tr0_5,EZ
 EZ1,EZ_rou1_tr0_6,EZ
+EZ2,EZ_rou2_tr0_0,EZ
+EZ2,EZ_rou2_tr0_1,EZ
+EZ2,EZ_rou2_tr0_2,EZ
+EZ2,EZ_rou2_tr0_3,EZ
+EZ2,EZ_rou2_tr0_4,EZ
+EZ2,EZ_rou2_tr0_5,EZ
+EZ2,EZ_rou2_tr0_6,EZ
