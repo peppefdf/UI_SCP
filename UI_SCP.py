@@ -34,6 +34,8 @@ import dash_loading_spinners as dls
 from dash import html, callback_context, ALL
 from dash import dcc, Output, Input, State, callback, dash_table
 import dash_leaflet as dl
+import dash_leaflet.express as dlx
+from dash_extensions.javascript import assign
 import dash_daq as daq
 
 import plotly.express as px
@@ -50,7 +52,7 @@ import geopy.distance
 import numpy as np
 
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, davies_bouldin_score, adjusted_rand_score
 
 #from google.colab import drive
 #drive.mount('/content/drive',  force_remount=True)
@@ -153,7 +155,7 @@ SIDEBAR_STYLE = {
     "top": 0,
     "left": 0,
     "bottom": 0,
-    "width": "20rem",
+    "width": "25rem",
     "padding": "2rem 1rem",
     "background-color": "#f8f9fa",
     "overflow": "scroll"           # scrollbar
@@ -210,7 +212,8 @@ stops_actions = [{'label': 'Delete marker', 'value': 'DM'},
 interventions = [{'label': 'Company transportation', 'value': 'CT'},
                  {'label': 'Remote working', 'value': 'RW'}                   
                 ]
- 
+
+choose_transp_hour = [{'label': "{:02d}".format(i) + ':00' + '-' + "{:02d}".format(i+1) + ':00', 'value': i} for i in range(24)] 
 
 sidebar =  html.Div(
        [
@@ -236,28 +239,9 @@ sidebar =  html.Div(
 
         dbc.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
-        html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
-        dbc.Popover(
-                  dbc.PopoverBody(mouse_over_mess_clusters), 
-                  target="n_clusters",
-                  body=True,
-                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'},
-                  placement= 'right',
-                  is_open=False),
-        #dcc.Input(id="n_clusters", type="text", value='19'),
-        dcc.Slider(1, 30, 1,
-               value=19,
-               id='n_clusters',
-               marks=None,
-               tooltip={"placement": "bottom", "always_visible": True}
-        ) ,       
-        html.Br(),        
-        dbc.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
+        dbc.Button("Calculate baseline scenario", id="calc_baseline", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
-        dbc.Popover(dcc.Markdown(mouse_over_mess_stops, dangerously_allow_html=True),
-                  target="propose_stops",
-                  body=True,
-                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),          
+        dbc.Button("Visualize scenarios", id="visualize_scenarios", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),          
         html.P([ html.Br(),'Select type of interventions'],id='intervention_select',style={"margin-top": "15px", "font-weight": "bold"}),
         dcc.Dropdown(interventions, multi=False,style={"margin-top": "15px"}, id='choose_intervention'),
         html.P([ html.Br(),'Select action for markers'],id='action_select',style={"margin-top": "15px", "font-weight": "bold"}),
@@ -319,8 +303,31 @@ indicators = html.Div(
                id='choose_CO2_lt',
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
-          ),  
-          dbc.Button("Run Mode Choice", id="run_MCM", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),        
+          ),
+          dbc.Row(
+            [
+                dbc.Col(
+                    html.Div(html.P(['Choose trip time'],style={"font-weight": "bold"})),
+                    style={"margin-top": "15px"},
+                    width="auto"
+                ),                
+                dbc.Col(
+                    html.Div(dcc.Dropdown(choose_transp_hour, multi=False, id='choose_transp_hour')),
+                    style={"margin-top": "15px"},
+                    width=4
+                ),
+                dbc.Col(
+                    html.Div(dcc.Loading(html.Div(id="running_MCM"), id="loading-component_MCM")),
+                    style={"margin-top": "15px"},
+                    width="auto"
+                ),
+                dbc.Col(
+                    html.Div(dbc.Button("Run Mode Choice", id="run_MCM", n_clicks=0, disabled=True)),
+                    style={"margin-top": "15px"},
+                    width="auto"
+                )
+            ]
+          ),
           html.Div([
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,6],"yellow":[6,8],"red":[8,10]}},
@@ -328,24 +335,40 @@ indicators = html.Div(
              label={'label':'CO2 emissions', 'style':{'font-size':'18px',"font-weight": "bold"}},
              style = {"margin-top": "20px","font-weight": "bold"},
              max=10,
-             min=0)
+             min=0,
+             id='CO2_gauge')
              ]),
           html.Div([
+              dcc.Graph(
+                figure={
+                        'data': [{
+                                'labels': [1, 2, 3], 
+                                'values': [1, 2, 3], 
+                                'type': 'pie',
+                                }],
+                        'layout': {
+                            'title': 'Transport share'
+                        }        
+                }, id='graph', 
+                style={'width':'60vh'})
+            ], style={'width':'100%'})
+        ],
+        style=INDICATORS_STYLE)
+"""
           dcc.Graph(figure=fig, id="graph",
-                    style={'width': '40vh'})
+                    style={'width': '60vh'})
           ],style={'width': '100%'})
         ],
-        style=INDICATORS_STYLE),
 
-
+"""
 #app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 app.layout = dbc.Container(
     [
         dbc.Row(
             [
                 dbc.Col(sidebar, width=2, className='bg-light'),
-                dbc.Col(content, width=8),
-                dbc.Col(indicators, width=2)
+                dbc.Col(content, width=7),
+                dbc.Col(indicators, width=3)
                 ],
             style={"height": "100vh"}
             ),
@@ -357,7 +380,8 @@ app.layout = dbc.Container(
 # Folder navigator ###############################################################
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
-    temp_file = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_workers_data.csv'
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    temp_file = root_dir + 'data/temp_workers_data.csv'
     decoded = base64.b64decode(content_string)
     try:
         if 'csv' in filename:
@@ -381,12 +405,11 @@ def parse_contents(contents, filename, date):
     return df.to_csv(temp_file, index=False)  
 
 def suggest_clusters(wdf):
-
     #sil_score_max = -100 #this is the minimum possible score
     dist_max = 100
     wdf = wdf[['O_lat', 'O_long']].values.tolist()
-    alpha = 0.7 
-    n_max_clusters = int(19*len(wdf)/2000.)
+    alpha = 0.65
+    n_max_clusters = int(19.*len(wdf)/2507)
     #beta = (1-alpha)*19 + alpha*0.63
     sil_score_max = 1
 
@@ -394,19 +417,155 @@ def suggest_clusters(wdf):
         #model = KMeans(n_clusters = n_clusters, init='k-means++', max_iter=100, n_init=1)
         model = KMeans(n_clusters = n_clusters)
         labels = model.fit_predict(wdf)
-        sil_score = silhouette_score(wdf, labels, sample_size=800, random_state=5)
+        #sil_score = silhouette_score(wdf, labels, sample_size=len(wdf), random_state=42, metric= 'mahalanobis')
+        sil_score = silhouette_score(wdf, labels, metric= 'manhattan')
+        #db_score = davies_bouldin_score(wdf, labels)
+        #ar_score = adjusted_rand_score(wdf, labels)
+        #sil_score = silhouette_score(wdf, labels)
         #aver_score = (1 - alpha)*n_clusters/n_max_clusters + alpha*sil_score
         #x = (1-alpha)*n_clusters + alpha*sil_score    
         #aver_score = - (x - beta)**2 + 1
         d0 = (1-alpha)*(n_max_clusters - n_clusters)/n_max_clusters
         d1 = alpha*(sil_score_max - sil_score) 
         dist_to_max = (d0**2 + d1**2)**0.5
-        print("The average silhouette score for %i clusters is %0.2f; the average score is %0.2f" %(n_clusters,sil_score, dist_to_max))
+        print("The average silhouette and db score for %i clusters are %0.2f; the average score is %0.2f" %(n_clusters,sil_score, dist_to_max))
         #if sil_score > sil_score_max:
         if dist_to_max < dist_max:   
            dist_max = dist_to_max
            best_n_clusters = n_clusters
     return best_n_clusters    
+
+
+def run_MCM(Transh, NremDays=3, NremWork=30):
+    import pandas as pd
+    print('Inside run_MCM 0')
+    import sys    
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    sys.path.append(root_dir + 'modules')
+    import pp
+    import prediction
+    import pandas as pd
+ 
+    if Transh == None:
+        Transh = 8
+        print('Transport hour not selected. Using default (08:00)')
+    else:
+        print('Chosen transport hour: ',Transh)
+    workers_data_dir = 'data/'
+    MCM_data_dir = 'data/input_data_MCM/'    
+    model_dir = 'modules/models/'
+    #trips_ez = pd.read_csv(root_dir + data_dir + 'workers_eskuzaitzeta_2k.csv')
+    trips_ez = pd.read_csv(root_dir + workers_data_dir + 'temp_workers_data.csv')
+    eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio',
+                'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] # adaptamos trips como input al pp
+    trips_ez = trips_ez.drop(columns=eliminar)
+    trips_ez=pp.pp(Transh,trips_ez, root_dir + MCM_data_dir) 
+    #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
+    #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
+    prediction=prediction.predict(trips_ez, root_dir + model_dir)  
+    print() 
+    print('result:')
+    print(prediction.head())
+    return prediction
+
+
+@callback([Output('CO2_gauge', 'value',allow_duplicate=True),
+           Output('map','children',allow_duplicate=True)],
+          State('choose_transp_hour','value'),
+          Input('calc_baseline', 'n_clicks'),
+          prevent_initial_call = True)
+def calc_baseline(TransHour, Nclicks):
+    import pandas as pd
+    print('Inside run_MCM 0')
+    import sys    
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    sys.path.append(root_dir + 'modules')
+
+    #selected_workers = select_workers(hours,origin(Municipio), destination(lat,lon))
+    result = run_MCM(TransHour)
+    #fig=show_MCM_results(result)
+    #fig = px.scatter_geo(result,
+    #                lat=result.geometry.y,
+    #                lon=result.geometry.x,
+    #                hover_name="Mode",
+    #                center = {'lat': 43.267237445097614, 'lon': -1.9937731483199466},
+    #                color="Mode") 
+    coords_dict = []
+    print('coords dict.:')
+    for i in result.itertuples():
+        coords_dict.append({'lat': i.geometry.y,'lon': i.geometry.x})
+        print(i) 
+          
+    children = [dl.TileLayer()]
+    for i_pred in result.itertuples():
+        if i_pred.Mode == 'walk':
+            color = '#2ECC71'        
+        elif i_pred.Mode == 'PT':
+            color = '#2E86C1'
+        else:
+            color = "#E74C3C" 
+        marker_i = dl.CircleMarker(
+                        id=str(i_pred),
+                        center=[i_pred.geometry.y, i_pred.geometry.x],
+                        radius=10,
+                        color=color,
+                        fill=True,
+                        fillColor=color,
+                        fillOpacity=1,
+                        )
+        children.append(marker_i)    
+    #dl.GeoJSON(data=dlx.dicts_to_geojson(coords_dict), cluster=False),
+    children.append(dl.ScaleControl(position="topright"))
+    new_map = dl.Map(children, center=center, 
+                                     zoom=12,
+                                     id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+
+    """
+    new_map = dl.Map([dl.TileLayer(), 
+                    dl.ScaleControl(position="topright")], center=center, 
+                                     zoom=12,
+                                     id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+    """
+    return [8,new_map]
+
+
+@callback([Output('CO2_gauge', 'value'),
+           Output('graph','figure'),
+           Output('loading-component_MCM','children')],
+          [State('choose_remote_days', 'value'),
+          State('choose_remote_workers', 'value'),
+          State('choose_transp_hour','value')],
+          Input('run_MCM', 'n_clicks'))
+def run_MCM_callback(NremDays, NremWork, TransH, Nclicks):
+    def categorize(code):
+        if code ==0:
+           return 'walk'
+        elif code ==1:
+           return 'PT'
+        else:
+           return 'car'
+    predicted = run_MCM(TransH, NremDays, NremWork)
+    predicted = predicted['prediction']
+    unique_labels, counts = np.unique(predicted, return_counts=True)
+    #labels = ['walk', 'PT', 'car']
+    #colors = ['#99ff66','#00ffff','#ff3300']
+    #df = px.data.tips()
+    #plt.pie(counts, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors)
+    d = {'unique_labels': unique_labels, 'counts':counts}
+    df = pd.DataFrame(data=d)
+    df['Mode'] = df['unique_labels'].apply(categorize)    
+    #fig = px.pie(df, values='counts', names='Mode')
+    #fig.update_layout(showlegend=False)
+    #fig.update_layout(title_text='Transport share', title_x=0.5)
+    fig = {
+        'data':[{
+            'labels': df['Mode'],
+            'values': df['counts'],
+            'type': 'pie'
+        }]
+    }
+    return [6, fig,True]
+
 
 @callback([Output('worker_data', 'data'),Output('n_clusters','value')],
               [Input('upload-data', 'contents'),
@@ -433,9 +592,63 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
         return [works_data,suggested_N_clusters]
 ############################################################################################
 
+#@app.callback([Output("clickdata", "children")],
+@app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('internal-value_coworking','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
+              State("n_clusters", "value"),
+              Input("propose_stops", "n_clicks")
+              )
+def propose_stops(n_clusters,Nclick):
+    if Nclick > 0:  
+        root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+        sys.path.append(root_dir + 'modules')      
+        import find_stops_module   
+        n_clusters  = int(n_clusters)
+        cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max
+        #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+        #workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
+        temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
+        workers_DF = pd.read_csv(temp_file)    
+        stops_DF = pd.read_csv(root_dir + 'data/'+ "all_bus_stops.csv", encoding='latin-1')
+        bus_stops_df,model,yhat = find_stops_module.FindStops(workers_DF, stops_DF, n_clusters, cutoff)
+        #df = pd.read_csv(filename)
+        #out=St.loc[:'Lat']
+        #for i in range(len(St)):
+        #    out = out + str(St.loc[i,['Lat']]) + ', ' + str(St.loc[i,['Lon']]) + '; '
+        out = ''
+        St = []
+        Cow = []
+        for ind in bus_stops_df.index:
+            out = out + str(bus_stops_df['Lat'][ind]) + ',' + str(bus_stops_df['Lon'][ind]) +';'
+            St.append((bus_stops_df['Lat'][ind],bus_stops_df['Lon'][ind]))
+            Cow.append(0)
+        markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+                        center=center, zoom=12, id="map",
+                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        #return [out,St,newMap]
+        return [out,St,Cow,newMap]
+
+@app.callback([Output('map','children',allow_duplicate=True)],
+               [Input("show_workers", "n_clicks")]
+              )
+def show_workers(N):
+    print()
+    print('inside show workers...')
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    temp_file = root_dir + 'data/temp_workers_data.csv'
+    workers_DF = pd.read_csv(temp_file)
+    St = []
+    for ind in workers_DF.index:
+         St.append((workers_DF['O_lat'][ind],workers_DF['O_long'][ind]))
+    markers = [dl.Marker(dl.Tooltip("Do something?"), position=pos, icon=custom_icon_worker, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+                     center=center, zoom=12, id="map",
+                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+    #return [out,St,newMap]
+    return [newMap]
 
 
-@app.callback([Output('sidebar_intervention','children',allow_duplicate=True)],
+@app.callback([Output('sidebar_intervention','children',allow_duplicate=True), Output('run_MCM','disabled')],
               State('internal-value_stops','data'),
               State('internal-value_coworking','data'),
               Input('choose_intervention',"value")
@@ -446,6 +659,30 @@ def choose_intervention(St,Cow,interv):
     if interv == 'CT':
         sidebar_transport = html.Div(
             [
+            html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
+            dbc.Popover(
+                  dbc.PopoverBody(mouse_over_mess_clusters), 
+                  target="n_clusters",
+                  body=True,
+                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'},
+                  placement= 'right',
+                  is_open=False),
+            #dcc.Input(id="n_clusters", type="text", value='19'),
+            dcc.Slider(1, 30, 1,
+               value=19,
+               id='n_clusters',
+               marks=None,
+               tooltip={"placement": "bottom", "always_visible": True}
+            ) ,       
+            html.Br(),        
+            dbc.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
+            html.Br(),
+            dbc.Popover(dcc.Markdown(mouse_over_mess_stops, dangerously_allow_html=True),
+                      target="propose_stops",
+                      body=True,
+                      trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
+
+
             dbc.Button("Match stops", id="match_stops", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
             dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
                       target="match_stops",
@@ -468,7 +705,7 @@ def choose_intervention(St,Cow,interv):
             dcc.Store(id='internal-value_routes', data=[])
             ])       
         
-        return [sidebar_transport]
+        return [sidebar_transport,True]
 
     if interv == 'RW':         
         
@@ -496,7 +733,7 @@ def choose_intervention(St,Cow,interv):
                 ])        
 
         
-        return [sidebar_remote_work]
+        return [sidebar_remote_work,False]
 
 
 
@@ -631,59 +868,6 @@ def match_stops(St,Cow,Nclick):
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
       return [len(St),St,newMap]
-
-
-               
-#@app.callback([Output("clickdata", "children")],
-@app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('internal-value_coworking','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
-              State("n_clusters", "value"),
-              Input("propose_stops", "n_clicks")
-              )
-def propose_stops(n_clusters,N):
-    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    sys.path.append(root_dir + 'modules')      
-    import find_stops_module   
-    n_clusters  = int(n_clusters)
-    cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max
-    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    #workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
-    temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
-    workers_DF = pd.read_csv(temp_file)    
-    stops_DF = pd.read_csv(root_dir + 'data/'+ "all_bus_stops.csv", encoding='latin-1')
-    bus_stops_df,model,yhat = find_stops_module.FindStops(workers_DF, stops_DF, n_clusters, cutoff)
-    #df = pd.read_csv(filename)
-    #out=St.loc[:'Lat']
-    #for i in range(len(St)):
-    #    out = out + str(St.loc[i,['Lat']]) + ', ' + str(St.loc[i,['Lon']]) + '; '
-    out = ''
-    St = []
-    Cow = []
-    for ind in bus_stops_df.index:
-         out = out + str(bus_stops_df['Lat'][ind]) + ',' + str(bus_stops_df['Lon'][ind]) +';'
-         St.append((bus_stops_df['Lat'][ind],bus_stops_df['Lon'][ind]))
-         Cow.append(0)
-    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-                     center=center, zoom=12, id="map",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-    #return [out,St,newMap]
-    return [out,St,Cow,newMap]
-
-@app.callback([Output('map','children',allow_duplicate=True)],
-               [Input("show_workers", "n_clicks")]
-              )
-def show_workers(N):
-    temp_file = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_workers_data.csv'
-    workers_DF = pd.read_csv(temp_file)
-    St = []
-    for ind in workers_DF.index:
-         St.append((workers_DF['O_lat'][ind],workers_DF['O_long'][ind]))
-    markers = [dl.Marker(dl.Tooltip("Do something?"), position=pos, icon=custom_icon_worker, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-                     center=center, zoom=12, id="map",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-    #return [out,St,newMap]
-    return [newMap]
 
 
 @app.callback([Output("outdata", "children",allow_duplicate=True), 
