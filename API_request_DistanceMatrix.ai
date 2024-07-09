@@ -1,0 +1,41 @@
+import requests
+
+APIkey = "bM9lG79uTlbywhcV9yaNCvD3VB1utlZL5tk9AWqheiaoIWMTdzHIbvfnC2cmgvwS"
+
+BASE_URL = "https://api.distancematrix.ai"
+
+origin = '43.26997513243831,-2.0200041319411115'
+destination = '43.323211920494515,-1.9745685637364758'
+
+def make_request(base_url, api_key, origin, destination, mode, traffic_model, departure_time):
+    url = "{base_url}/maps/api/distancematrix/json" \
+          "?key={api_key}" \
+          "&origins={origin}" \
+          "&destinations={destination}" \
+          "&mode={mode}" \
+          "&traffic_model={traffic_model}" \
+          "&departure_time={departure_time}".format(base_url=base_url,
+                                                    api_key=api_key,
+                                                    origin=origin,
+                                                    destination=destination,
+                                                    mode=mode,
+                                                    traffic_model=traffic_model,
+                                                    departure_time=departure_time)
+    # logging.info("URL: %s" % url)
+    print()
+    print('url request:')
+    print(url)
+    print()
+    result = requests.get(url)
+    return result.json()
+
+resp = make_request(BASE_URL,APIkey,origin, destination,'transit','best_guess','now')
+#resp = requests.get("https://api.distancematrix.ai/maps/api/distancematrix/json?origins=43.26997513243831,-2.0200041319411115&destinations=43.323211920494515, -1.9745685637364758&key=bM9lG79uTlbywhcV9yaNCvD3VB1utlZL5tk9AWqheiaoIWMTdzHIbvfnC2cmgvwS")
+#print()
+#print('response:')
+#print(resp.text)
+#https://api.distancematrix.ai/maps/api/distancematrix/json?origins=51.4822656,-0.1933769&destinations=51.4994794,-0.1269979&key=bM9lG79uTlbywhcV9yaNCvD3VB1utlZL5tk9AWqheiaoIWMTdzHIbvfnC2cmgvwS
+print()
+print('response:')
+print(resp)
+print()
