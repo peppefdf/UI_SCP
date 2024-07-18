@@ -74,7 +74,7 @@ input_group_Row = dbc.Row([
                 dbc.Input(id='integer',placeholder="Enter int")
             ]),     
      dbc.Col([
-        dbc.Button('Enter', color='primary',id='load', n_clicks=0),
+        dbc.Button('New Tab', color='primary',id='new_Tab', n_clicks=0),
             ]) 
     ])
 
@@ -292,11 +292,17 @@ indicators = html.Div(
 
 
 
-
-#    [State("integer", "value")],
+"""
 @app.callback(
     Output("output-content", "children"),
     [Input("load", "n_clicks")],
+    [State("integer", "value")],
+)
+"""
+#    [State("integer", "value")],
+@app.callback(
+    Output("output-content", "children"),
+    [Input("new_Tab", "n_clicks")],
     [State("integer", "value")],
 )
 def render_tabs(click1, integ):
