@@ -1,4 +1,0 @@
-route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
-EZ0,CSL_01,,Eskuzaitzeta0,,3,,FFFFFF,8DC63F
-EZ1,CSL_01,,Eskuzaitzeta1,,3,,FFFFFF,8DC63F
-EZ2,CSL_01,,Eskuzaitzeta2,,3,,FFFFFF,8DC63F
