@@ -408,7 +408,20 @@ indicators = html.Div(
                     ),
                     style={"margin-top": "15px"},
                     width='auto'
-                )
+                ),
+                dbc.Col(
+                    html.Div(
+                              dcc.Upload(id='download-scenario',
+                                         children=html.Div([
+                                         dbc.Button('Load scenario')
+                                        ]),
+                                        # Allow multiple files to be uploaded
+                                        multiple=True
+                                        )
+                    ),
+                    style={"margin-top": "15px"},
+                    width='auto'
+                )            
             ]
           ),
           html.Div([
