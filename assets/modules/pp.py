@@ -372,7 +372,10 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
 
     import itertools
     origins = list(itertools.chain.from_iterable(origins)) #flatten and merge list of lists
-    dest = list(itertools.chain.from_iterable(dest)) #flatten and merge list of lists   
+    dest = list(itertools.chain.from_iterable(dest)) #flatten and merge list of lists 
+    print()
+    print('lengths before:')  
+    print(len(origins), len(dest))
 
     distances_to_pt = networks['walk'].shortest_path_lengths(origins, dest)
     #print('distance:')
@@ -382,7 +385,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
                                columns=['ori_node', 'dest_node', 'dist'])
     
     print()
-    print('lengths:')
+    print('lengths after:')
     print(len(origins), len(dest), len(distances_to_pt))
     closest_POIs = temp_df.groupby('ori_node')['dist'].min()
     #print(closest_POIs.drop(columns=['ori_node'], inplace=True).head()) 
