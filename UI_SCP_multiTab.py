@@ -161,7 +161,8 @@ INDICATORS_STYLE = {
     "top": 50,
     "right": 20,
     "bottom": 0,
-    "width": "30rem"    
+    "width": "30rem",
+    "overflow": "scroll"    
 }
 """
     "position": "fixed",
@@ -345,6 +346,9 @@ df = px.data.tips()
 fig = px.pie(df, values='tip', names='day')
 fig.update_layout(showlegend=False)
 fig.update_layout(title_text='Transport share', title_x=0.5)
+
+d = {'distance': [100, 50, 2], 'Mode': ['Car','PT','Walk']}
+df = pd.DataFrame(data=d)
 indicators_1 = html.Div(
         [              
           #dbc.Button("Reset scenario (variables and files)", id='reset_scenario_1', n_clicks=0, style={"margin-top": "15px"}),
@@ -419,7 +423,21 @@ indicators_1 = html.Div(
              ]),
           html.Div([
               dcc.Graph(
-                figure={
+                figure=fig, 
+                id='Transport_share')
+            ]),
+
+          html.Div([
+              dcc.Graph(
+                    #figure=px.bar(df, x='Km', y='Mode', orientation='h'), 
+                    figure=px.bar(df, x='distance', y='Mode', orientation='h', labels={'distance':'Total distance (km)'}, color = 'distance', title="Total distance share (km)"),
+                    id="Km_share")         
+              ])
+
+        ],
+        style=INDICATORS_STYLE)
+"""
+{
                         'data': [{
                                 'labels': [1, 2, 3], 
                                 'values': [1, 2, 3], 
@@ -428,13 +446,9 @@ indicators_1 = html.Div(
                         'layout': {
                             'title': 'Transport share'
                         }        
-                }, id='graph_1', 
-                style={'width':'60vh'})
-            ], style={'width':'100%'})
-        ],
-        style=INDICATORS_STYLE)
+                }
 
-
+"""
 sidebar2 =  html.Div(
        [
         html.P(['Import worker file'],id='import_text2',style={"margin-top": "15px","font-weight": "bold"}),
@@ -728,11 +742,13 @@ def drawclusters(workers_df,n_clusters):
     workers_lat_lon = np.array(workers_lat_lon)
     model = KMeans(n_clusters=n_clusters, max_iter=500).fit(workers_lat_lon)
     clusters_poly = []
+    #points_per_cluster = []
     for i in range(n_clusters):
         points = workers_lat_lon[model.labels_ == i]
         hull = ConvexHull(points)
         vert = np.append(hull.vertices, hull.vertices[0])  # close the polygon by appending the first point at the end
         clusters_poly.append(points[vert])
+        #points_per_cluster.append(len(points))
     return clusters_poly
 
 def suggest_clusters(wdf):
@@ -808,7 +824,8 @@ def hex_to_rgb(hex_color):
     """
     return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
-def generate_color_CO2(CO2max,CO2_i):
+#def generate_color_gradient(CO2max,CO2_i, n_colors=256, n_min=0):
+def generate_color_gradient(CO2max,CO2_i):
     #from  matplotlib.colors import ListedColormap, Normalize, LogNorm
     import matplotlib as mpl
 
@@ -822,11 +839,17 @@ def generate_color_CO2(CO2max,CO2_i):
     #color_hex= mpl.colors.to_hex(sm.to_rgba(idx), keep_alpha=False)
     color_hex= mpl.colors.to_hex(sm.to_rgba(CO2_i))
     """
+    """
     ranges = [
         {"start": "2ECC71", "end": "F7DC6F"},
         {"start": "F7DC6F", "end": "E74C3C"}
     ]
+    """
 
+    ranges = [
+        {"start": "2ECC71", "end": "F4D03F"},
+        {"start": "F4D03F", "end": "C0392B"}
+    ]
     color_start_hex = ranges[0]["start"]
     color_end_hex = ranges[0]["end"]
     color_start_rgb = hex_to_rgb(color_start_hex)
@@ -840,11 +863,12 @@ def generate_color_CO2(CO2max,CO2_i):
     # Generate gradient
     gradient2 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
     gradient = gradient1 + gradient2
+
     N = len(gradient)
 
     value = int((CO2_i/CO2max)*N)
     idx = np.argmin(np.abs(np.array(range(N))-value))
-    color = [gradient[idx][0]/256,gradient[idx][1]/256,gradient[idx][2]/256]
+    color = [gradient[idx][0]/255,gradient[idx][1]/255,gradient[idx][2]/255]
     color_hex = mpl.colors.to_hex(color)
     #if value == N:
     #print(value,idx,color)
@@ -857,22 +881,29 @@ def plot_result(result):
     d = {'unique_labels': unique_labels, 'counts':counts}
     df = pd.DataFrame(data=d)    
     #        'labels': df['unique_labels'],
-    fig = {
+    fig1 = {
         'data':[{
             'labels': ['Walk','PT','Car'],
             'values': df['counts'],
             'type': 'pie'
         }]
     }
-
+    
+    temp = result.copy()
+    temp['distance_km'] = temp['distance']/1000.
+    #temp['original_distance'] = temp['original_distance']/1000.
+    fig2 = px.bar(temp, x='distance_km', y='Mode', orientation='h', labels={'distance_km':'Total distance (km)'}, color = 'distance_km', title="Total distance share (km)")
 
     children = [dl.TileLayer()]
     maxCO2 = result['CO2'].max()
+    maxCO2_worst_case = result['CO2_worst_case'].max()
     Total_CO2 = result['CO2'].sum()
     Total_CO2_worst_case = result['CO2_worst_case'].sum()
     for i_pred in result.itertuples():
         #print(i_pred.geometry.y, i_pred.geometry.x)
-        color = generate_color_CO2(maxCO2,i_pred.CO2) 
+        #color = generate_color_gradient(maxCO2,i_pred.CO2) 
+        #color = generate_color_gradient(i_pred.CO2_worst_case,i_pred.CO2) 
+        color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2) 
         #print(color)
         #text = i_pred.Mode
         text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
@@ -901,7 +932,7 @@ def plot_result(result):
                                      zoom=12,
                                      id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
-    return [Total_CO2/Total_CO2_worst_case, fig, new_map]
+    return [Total_CO2/Total_CO2_worst_case, fig1,fig2, new_map]
 
 def categorize_Mode(code):
     if 'Andando' in code:
@@ -938,7 +969,7 @@ def run_MCM(trips_ez, root_Dir, Transh, gkm_car=1./12, gkm_bus=1.1, co2lt=2.3, N
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] 
     trips_ez = trips_ez.drop(columns=eliminar)
     #trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'example_workers_data.csv',index=False)
-    trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremDays, NremWork, root_dir + MCM_data_dir) 
+    trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremWork, NremDays, root_dir + MCM_data_dir) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
     prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir)  
@@ -982,7 +1013,8 @@ def toggle_collapse(n, is_open):
 
 #           Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
-           Output('graph_1','figure',allow_duplicate=True),
+           Output('Transport_share','figure',allow_duplicate=True),
+           Output('Km_share','figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
            Output('internal-value_scenario_1','data',allow_duplicate=True),
            Output('loading-component_MCM_1','children',allow_duplicate=True)],
@@ -1019,11 +1051,12 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, StopsCoords, Cowo
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
-    return [out[0],out[1],out[2], scenario_json, True]
+    return [out[0],out[1],out[2],out[3], scenario_json, True]
 
 
 @callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
-           Output('graph_1','figure',allow_duplicate=True),
+           Output('Transport_share','figure',allow_duplicate=True),
+           Output('Km_share','figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
            Output('internal-value_scenario_1','data',allow_duplicate=True),
            Output('loading-component_MCM_1','children',allow_duplicate=True)],
@@ -1051,7 +1084,7 @@ def run_MCM_baseline_callback(root_dir, workerData, TransH, Nclicks):
     #default_internal_value_coworking = []
     default_values = [0,0,8,1./12,1.1,2.3,[],[]]
     #*default_values
-    return [out[0],out[1],out[2], scenario_json, True]
+    return [out[0],out[1],out[2],out[3], scenario_json, True]
 
 
 @callback([
@@ -1238,7 +1271,8 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
 
 #           Output('internal-value_stops','data',allow_duplicate=True),
 @callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
-           Output('graph_1','figure',allow_duplicate=True),
+           Output('Transport_share','figure',allow_duplicate=True),
+           Output('Km_share','figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
            Output('choose_remote_days_1', 'value',allow_duplicate=True),           
            Output('choose_remote_workers_1', 'value',allow_duplicate=True),
@@ -1301,7 +1335,7 @@ def load_scenario(list_of_contents, list_of_names, list_of_dates):
             CowHubs_flags = []
         #StopsCoords,CowHubs_flags,
         #return [scenario[0][0],scenario[0][1],scenario[0][2],inputs[0],inputs[1],inputs[2],inputs[3],inputs[4],inputs[5], StopsCoords, CowHubs_flags, True]
-        return [scenario[0][0],scenario[0][1],scenario[0][2],*inputs, StopsCoords, CowHubs_flags, True]
+        return [scenario[0][0],scenario[0][1],scenario[0][2],scenario[0][3],*inputs, StopsCoords, CowHubs_flags, True]
 
 
 #@app.callback([Output("clickdata", "children")],
@@ -1370,8 +1404,14 @@ def show_workers(n_clusters,workerData, N):
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
     """ 
     clusters = drawclusters(workers_DF,n_clusters)
-    colors = generate_colors(n_clusters)
-    cluster_shapes = [dl.Polygon(children = dl.Tooltip('Number of workers: '+str(len(clusters[i]))), positions=clusters[i], fill=True, fillColor = colors[i], fillOpacity=0.6) for i in range(n_clusters)]
+    n_max = max(len(x) for x in clusters ) # find maximum size of the clusters
+    n_min = min(len(x) for x in clusters ) # find maximum size of the clusters
+    #colors = generate_colors(n_clusters)
+    n_colors = n_max
+    #n_colors = 255
+    colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
+    #colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
+    cluster_shapes = [dl.Polygon(children = dl.Tooltip('Number of workers: '+str(len(clusters[i]))), positions=clusters[i], fill=True, fillColor = colors[i], fillOpacity=0.9) for i in range(n_clusters)]
     newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + cluster_shapes,
                      center=center, zoom=12, id="map_1",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
