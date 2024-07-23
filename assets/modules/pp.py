@@ -306,7 +306,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
     X["original_distance"] = X["distance"] # save original distance to calculte worst case scenario
 
     cowhub_i = 0
-    if len(CowCoords) > 0:
+    if np.any(CowCoords):
         for cowhub in CowCoords:
             d = {'CowH_lat': [cowhub[0]], 'CowH_lon': [cowhub[1]]}
             # generate dataframe with replicas of the previous coordinates ###########
@@ -320,9 +320,11 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
                     imp_name='distance'
                     )
             cowhub_i+=1
+        #
         ############################################################################################
         filter_cols = [col for col in X if col.startswith('distance_CowHub_')]
         compare_cols = ['distance'] + filter_cols     
+
 
         # Keep track of whether coworking hub is closer than original distance #####################
         t = X[compare_cols].idxmin(axis=1) # for each row, get names of the column with min dist
@@ -341,6 +343,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
     X_to_set = X.sample(n_rw)
     X_to_set["Rem_work"] = RemWoDays
     X.update(X_to_set)
+    #X.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_pp_file.csv')
     ############################################################################################
     #else:
     #    X['Coworking'] = 0
@@ -352,6 +355,63 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
                 networks['walk'].get_node_ids(X.D_long,X.D_lat)
                 )
     X["walk_tt"] = X["walk_tt"] / 60
+ 
+    from pandana.loaders import osm
+    bbox = [min(X.O_lat), min(X.O_long), max(X.O_lat), max(X.O_long)]
+    print()
+    print('generating pois graph...')
+    pois = osm.node_query(bbox[0], bbox[1], bbox[2], bbox[3], tags='"amenity"="bus_station"')  
+
+    poi_node_ids = networks['walk'].get_node_ids(pois.lon, pois.lat).values
+    print()
+    print('start calculating distances...')
+    ori_node_ids = networks['walk'].get_node_ids(X.O_long,X.O_lat).values
+
+    origins = [[ori_node_ids[i]]*len(poi_node_ids) for i in range(len(ori_node_ids))]
+    dest = list([poi_node_ids[:]]*len(ori_node_ids))
+
+    import itertools
+    origins = list(itertools.chain.from_iterable(origins)) #flatten and merge list of lists
+    dest = list(itertools.chain.from_iterable(dest)) #flatten and merge list of lists 
+    print()
+    print('lengths before:')  
+    print(len(origins), len(dest))
+
+    distances_to_pt = networks['walk'].shortest_path_lengths(origins, dest)
+    #print('distance:')
+    #print(distances_to_pt)
+
+    temp_df = pd.DataFrame(np.column_stack([origins, dest, distances_to_pt]), 
+                               columns=['ori_node', 'dest_node', 'dist'])
+    
+    print()
+    print('lengths after:')
+    print(len(origins), len(dest), len(distances_to_pt))
+    closest_POIs = temp_df.groupby('ori_node')['dist'].min()
+    #print(closest_POIs.drop(columns=['ori_node'], inplace=True).head()) 
+    X["closest_PT"] = closest_POIs.values
+
+    print('done!')
+    print()
+    print()
+
+
+    """
+    # Crear una red de peatones en Pandana
+    network = pdna.Network.from_hdf5("pedestrian_network.h5")
+
+    # Definir las coordenadas del nodo en cuestión
+    node_lat = 40.7128
+    node_lon = -74.0060
+
+    # Encontrar el nodo más cercano en la red de peatones
+    node_id = network.get_node_ids(node_lat, node_lon)
+
+    # Calcular la distancia al nodo de transporte público más cercano
+    closest_pt_node = network.nearest_pois(node_id, category="public_transport", num_pois=1)
+    distance_to_pt = network.get_node_distance(node_id, closest_pt_node)
+    """
+
 
     # Add TRANSIT
 
