@@ -969,7 +969,7 @@ def run_MCM(trips_ez, root_Dir, Transh, gkm_car=1./12, gkm_bus=1.1, co2lt=2.3, N
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] 
     trips_ez = trips_ez.drop(columns=eliminar)
     #trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'example_workers_data.csv',index=False)
-    trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremWork, NremDays, root_dir + MCM_data_dir) 
+    trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremWork, NremDays, root_dir, MCM_data_dir) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
     prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir)  
