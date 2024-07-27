@@ -332,7 +332,9 @@ central_panel_1 = html.Div(
                     children=[ dl.Map(
                                 [dl.ScaleControl(position="topright"),
                                  dl.LayersControl(
-                                        [dl.BaseLayer(dl.TileLayer(), name='base_map',checked='base_map')] +
+                                        [dl.BaseLayer(dl.TileLayer(), name='base_map', checked='base_map'),
+                                         dl.BaseLayer(dl.TileLayer(), name='map_norm_1', checked=False),
+                                         dl.BaseLayer(dl.TileLayer(), name='map_norm_2', checked=False)]  +
                                         [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", checked=False),
                                          dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote", checked=False),
                                          dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking", checked=False)], 
@@ -956,7 +958,9 @@ def plot_result(result):
     children = [
                 dl.ScaleControl(position="topright"),
                 dl.LayersControl(
-                                [dl.BaseLayer(dl.TileLayer(), name='base_map', checked='base_map')] +
+                                [dl.BaseLayer(dl.TileLayer(), name='base_map', checked='base_map'),
+                                 dl.BaseLayer(dl.TileLayer(), name='map_norm_1', checked=False),
+                                 dl.BaseLayer(dl.TileLayer(), name='map_norm_2', checked=False)] +
                                 [dl.Overlay(dl.LayerGroup(markers_all_1), name="all_1", checked=True),
                                  dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote_1", checked=True),
                                  dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking_1", checked=True)], 
