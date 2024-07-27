@@ -317,8 +317,9 @@ sidebar_1 =  html.Div(
         style=SIDEBAR_STYLE)
 
 
-markers_11 = []
-markers_12 = []
+markers_all_1 = []
+markers_remote_1 = []
+markers_cow_1 = []
 central_panel_1 = html.Div(
        [
           html.Div([
@@ -332,8 +333,10 @@ central_panel_1 = html.Div(
                                 [dl.ScaleControl(position="topright"),
                                  dl.LayersControl(
                                         [dl.BaseLayer(dl.TileLayer(), name='base_map',checked='base_map')] +
-                                        [dl.Overlay(dl.LayerGroup(markers_11), name="markers_11", checked=True),dl.Overlay(dl.LayerGroup(markers_12), name="markers_12", checked=True)], 
-                                        id="lc"
+                                        [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", checked=False),
+                                         dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote", checked=False),
+                                         dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking", checked=False)], 
+                                        id="lc_1"
                                         )
                                 ], 
                                 center=center, 
@@ -907,8 +910,9 @@ def plot_result(result):
     maxCO2_worst_case = result['CO2_worst_case'].max()
     Total_CO2 = result['CO2'].sum()
     Total_CO2_worst_case = result['CO2_worst_case'].sum()
-    markers_11 = []
-    markers_12 = []
+    markers_all_1 = []
+    markers_remote_1 = []
+    markers_cow_1 = []
     for i_pred in result.itertuples():
         #print(i_pred.geometry.y, i_pred.geometry.x)
         #color = generate_color_gradient(maxCO2,i_pred.CO2) 
@@ -936,18 +940,27 @@ def plot_result(result):
                         fillOpacity=1,
                         )
         #children.append(marker_i)
-        markers_11.append(marker_i)  
+        markers_all_1.append(marker_i)  
         #print('remote_work_i: ', i_pred.Rem_work)
-        if  i_pred.Rem_work > 0.0:
-            markers_12.append(marker_i)
+        try:
+            if  i_pred.Rem_work > 0.0:
+                markers_remote_1.append(marker_i)
+        except:
+            pass
+        try:
+            if  i_pred.Coworking > 0.0:
+                markers_cow_1.append(marker_i)
+        except:
+            pass
     #children.append(dl.ScaleControl(position="topright"))
-    print(markers_12)
     children = [
                 dl.ScaleControl(position="topright"),
                 dl.LayersControl(
                                 [dl.BaseLayer(dl.TileLayer(), name='base_map', checked='base_map')] +
-                                [dl.Overlay(dl.LayerGroup(markers_11), name="markers_11", checked=True),dl.Overlay(dl.LayerGroup(markers_12), name="markers_12", checked=True)], 
-                                id="lc"
+                                [dl.Overlay(dl.LayerGroup(markers_all_1), name="all_1", checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote_1", checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking_1", checked=True)], 
+                                id="lc_1"
                                 )
                 ]
 
