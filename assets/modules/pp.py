@@ -359,60 +359,6 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
                 )
     X["walk_tt"] = X["walk_tt"] / 60
  
-    """
-    from pandana.loaders import osm
-    bbox = [min(X.O_lat), min(X.O_long), max(X.O_lat), max(X.O_long)]
-    print()
-    print('generating pois graph...')
-    pois = osm.node_query(bbox[0], bbox[1], bbox[2], bbox[3], tags='"amenity"="bus_station"')  
-
-    poi_node_ids = networks['walk'].get_node_ids(pois.lon, pois.lat).values
-    print()
-    print('start calculating distances...')
-    ori_node_ids = networks['walk'].get_node_ids(X.O_long,X.O_lat).values
-    print()
-    print('lengths before:')  
-    print(len(ori_node_ids), len(poi_node_ids))
-
-    origins = [[ori_node_ids[i]]*len(poi_node_ids) for i in range(len(ori_node_ids))]
-    dest = list([poi_node_ids[:]]*len(ori_node_ids))
-
-    import itertools
-    origins = list(itertools.chain.from_iterable(origins)) #flatten and merge list of lists
-    dest = list(itertools.chain.from_iterable(dest)) #flatten and merge list of lists 
-
-    distances_to_pt = networks['walk'].shortest_path_lengths(origins, dest)
-    #print('distance:')
-    #print(distances_to_pt)
-
-    #temp_df = pd.DataFrame(np.column_stack([origins, dest, distances_to_pt]), 
-    #                           columns=['ori_node', 'dest_node', 'dist'])
-    temp_df = pd.DataFrame(distances_to_pt, 
-                               columns=['dist'])    
-    closest_POIs = temp_df.groupby(np.arange(len(temp_df))//len(poi_node_ids)).min() #group by number of origins and keep the min for each origin node
-    #print(closest_POIs.drop(columns=['ori_node'], inplace=True).head()) 
-    X["closest_PT"] = closest_POIs.values
-    """
-
-    """
-    stops_file = root_dir +'data/all_bus_stops.csv'
-    stops_df = pd.read_csv(stops_file, encoding='latin-1')
-    stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()
-    all_distances = []
-    for index, row in X.iterrows():
-        ref = np.array([row.O_lat, row.O_long])
-        ref = np.tile(ref,(len(stops_lat_lon),1)) # generate replicas of ref point
-        #d = [sum((p-q)**2)**0.5 for p, q in zip(ref, stops_lat_lon)] # calculate distance of each bus stop to ref point
-        d = [geopy.distance.geodesic((p[0],p[1]), (q[0],q[1])).km for p, q in zip(ref, stops_lat_lon)] # calculate distance of each bus stop to ref point
-        all_distances.append(d)
-    
-    distances_df = pd.DataFrame(all_distances, columns = ['distance_to_stop_' + str(i) for i in range(len(all_distances[0]))])
-    distances_df_sorted = distances_df.apply(np.sort, axis = 1)
-    cols = range(5,len(distances_df_sorted.columns)) #keep first 5 smaller distances
-    distances_df_sorted.drop(distances_df_sorted.columns[cols],axis=1,inplace=True) 
-    X = pd.concat([X, distances_df_sorted], axis=1)
-    """
-
     #bbox = [min(X.O_lat), min(X.O_long), max(X.O_lat), max(X.O_long)]
     stops_file = root_dir +'data/all_bus_stops.csv'
     stops_df = pd.read_csv(stops_file, encoding='latin-1')
