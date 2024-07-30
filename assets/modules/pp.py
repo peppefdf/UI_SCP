@@ -106,89 +106,133 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
     print(nombres_archivos)
 
 
-    for timerange, nombre_archivo in zip(timeranges, nombres_archivos):
-        
-        filen = f'{nombre_archivo}'        
-        # Create transit network
-        urbanaccess_net = ua.network.ua_network
 
-        # Create new transit network from new feeds ##############################################
-        loaded_feeds = ua.gtfs.load.gtfsfeed_to_df(gtfsfeed_path=gtfsfeed_path,
-                                                validation=validation,
-                                                verbose=verbose,
-                                                bbox=bbox,
-                                                remove_stops_outsidebbox=remove_stops_outsidebbox,
-                                                append_definitions=append_definitions)
-        # Create transit network
-        ua.gtfs.network.create_transit_net(gtfsfeeds_dfs=loaded_feeds,
-                                        day='monday',
-                                        timerange=timerange,
-                                        calendar_dates_lookup=None)
-        #############################################################################################
-        
-        print('Transit network:')
-        print(urbanaccess_net.transit_edges.head())
+    lista = ["transit_0001",# lista creada para poder encontrar el string transit en la hora pedida
+    "transit_0102",
+    "transit_0203", 
+    "transit_0304", 
+    "transit_0405", 
+    "transit_0506",
+    "transit_0607",
+    "transit_0708",
+    "transit_0809",
+    "transit_0910",
+    "transit_1011",
+    "transit_1112",
+    "transit_1213",
+    "transit_1314",
+    "transit_1415",
+    "transit_1516",
+    "transit_1617",
+    "transit_1718",
+    "transit_1819",
+    "transit_1920",
+    "transit_2021",
+    "transit_2122",
+    "transit_2223",
+    "transit_2324"]
 
-        if (os.path.isfile(networks_path + 'pedestrian_net.h5')):
-
-           print('\nLoading saved networks...') 
-           #transit_ped_net = ua.network.load_network(dir=root_dir + 'transit_together_24h/', filename=filen)
-           #ped_net = ua.network.load_network(dir=root_dir + 'networks/', filename='pedestrian_net.h5')
-           ped_net = pdn.Network.from_hdf5(networks_path + 'pedestrian_net.h5')
-           print('done!\n')
-           
-           # The following sh... is really important!!! Pandana messes up data types (floats instead oif int64!) ####################
-           ped_net.nodes_df['id'] = ped_net.nodes_df.index 
-           ##########################################################################################################################
-
-           ua.osm.network.create_osm_net(osm_edges=ped_net.edges_df, osm_nodes=ped_net.nodes_df, travel_speed_mph=3)
-           print('done!\n')
-
+    cont=0
+    for k in lista:# este bucle elige de lista el transit que hayamos solititado, lo carga y lo asigna a el diccionario
+        if hour==cont:
+            #network_name = root_dir + 'data/input_data_MCM/' + f'/transit_together_24h/{k}.h5'
+            network_filename = transit_together_path + f'{k}.h5'
+            break
         else:
-            nodes, edges = ua.osm.load.ua_network_from_bbox(bbox=bbox, remove_lcn=True)
-            # Crear la red de OSM (pedestrian)       
+            cont=cont+1
 
-            ua.osm.network.create_osm_net(osm_edges=edges, osm_nodes=nodes, travel_speed_mph=3) 
 
-            ped_net_pdn = pdn.network.Network(
-                                    nodes["x"],
-                                    nodes["y"],
-                                    edges["from"],
-                                    edges["to"],
-                                    edges[["weight","distance"]])
+    if (os.path.isfile(network_filename)==False):
 
-            ped_net_pdn.save_hdf5(networks_path + 'pedestrian_net.h5')
-            #print(urbanaccess_net.osm_nodes.head())
-            #print(urbanaccess_net.osm_edges.head()) 
+        print()
+        print('integrated network file not found! Generating a new one...')
+        for timerange, nombre_archivo in zip(timeranges, nombres_archivos):
+            
+            filen = f'{nombre_archivo}'        
+            # Create transit network
+            urbanaccess_net = ua.network.ua_network
 
-        print('\nIntegrating all networks...')
-        # Integrate saved and newly created tansit network 
-        ua.network.integrate_network(urbanaccess_network=urbanaccess_net,  # do we need this?
-                                    headways=False)     
+            # Create new transit network from new feeds ##############################################
+            loaded_feeds = ua.gtfs.load.gtfsfeed_to_df(gtfsfeed_path=gtfsfeed_path,
+                                                    validation=validation,
+                                                    verbose=verbose,
+                                                    bbox=bbox,
+                                                    remove_stops_outsidebbox=remove_stops_outsidebbox,
+                                                    append_definitions=append_definitions)
+            # Create transit network
+            ua.gtfs.network.create_transit_net(gtfsfeeds_dfs=loaded_feeds,
+                                            day='monday',
+                                            timerange=timerange,
+                                            calendar_dates_lookup=None)
+            #############################################################################################
+            
+            print('Transit network:')
+            print(urbanaccess_net.transit_edges.head())
 
-        # Add average headways to network travel time
-        ua.gtfs.headways.headways(gtfsfeeds_df=loaded_feeds,
-                            headway_timerange=timerange)
-        loaded_feeds.headways
+            if (os.path.isfile(networks_path + 'pedestrian_net.h5')):
 
-        ua.network.integrate_network(urbanaccess_network=urbanaccess_net,
-                                headways=True,
-                                urbanaccess_gtfsfeeds_df=loaded_feeds,
-                                headway_statistic='mean')
-        print('successfully integrated existing and newly created networks!')
-       
-        #print(urbanaccess_net.net_edges["from_int"].head())
-        #urbanaccess_net.net_nodes.set_index('ID', inplace= True)
-        transit_ped_net_pdn = pdn.network.Network(
-                                urbanaccess_net.net_nodes["x"],
-                                urbanaccess_net.net_nodes["y"],
-                                urbanaccess_net.net_edges["from_int"],
-                                urbanaccess_net.net_edges["to_int"],
-                                urbanaccess_net.net_edges[["weight"]])
-                                #urbanaccess_net.net_edges[["weight","distance"]])
+                print('\nLoading saved networks...') 
+                #transit_ped_net = ua.network.load_network(dir=root_dir + 'transit_together_24h/', filename=filen)
+                #ped_net = ua.network.load_network(dir=root_dir + 'networks/', filename='pedestrian_net.h5')
+                ped_net = pdn.Network.from_hdf5(networks_path + 'pedestrian_net.h5')
+                print('done!\n')
+                
+                # The following sh.. is really important!!! Pandana messes up data types (floats instead of int64!) ####################
+                ped_net.nodes_df['id'] = ped_net.nodes_df.index 
+                ##########################################################################################################################
 
-        transit_ped_net_pdn.save_hdf5(transit_together_path + filen)
+                ua.osm.network.create_osm_net(osm_edges=ped_net.edges_df, osm_nodes=ped_net.nodes_df, travel_speed_mph=3)
+                print('done!\n')
+
+            else:
+                nodes, edges = ua.osm.load.ua_network_from_bbox(bbox=bbox, remove_lcn=True)
+                # Crear la red de OSM (pedestrian)       
+
+                ua.osm.network.create_osm_net(osm_edges=edges, osm_nodes=nodes, travel_speed_mph=3) 
+
+                ped_net_pdn = pdn.network.Network(
+                                        nodes["x"],
+                                        nodes["y"],
+                                        edges["from"],
+                                        edges["to"],
+                                        edges[["weight","distance"]])
+
+                ped_net_pdn.save_hdf5(networks_path + 'pedestrian_net.h5')
+                #print(urbanaccess_net.osm_nodes.head())
+                #print(urbanaccess_net.osm_edges.head()) 
+
+            print('\nIntegrating all networks...')
+            # Integrate saved and newly created tansit network 
+            ua.network.integrate_network(urbanaccess_network=urbanaccess_net,  # do we need this?
+                                        headways=False)     
+
+            # Add average headways to network travel time
+            ua.gtfs.headways.headways(gtfsfeeds_df=loaded_feeds,
+                                headway_timerange=timerange)
+            loaded_feeds.headways
+
+            ua.network.integrate_network(urbanaccess_network=urbanaccess_net,
+                                    headways=True,
+                                    urbanaccess_gtfsfeeds_df=loaded_feeds,
+                                    headway_statistic='mean')
+            print('successfully integrated existing and newly created networks!')
+        
+            #print(urbanaccess_net.net_edges["from_int"].head())
+            #urbanaccess_net.net_nodes.set_index('ID', inplace= True)
+            transit_ped_net_pdn = pdn.network.Network(
+                                    urbanaccess_net.net_nodes["x"],
+                                    urbanaccess_net.net_nodes["y"],
+                                    urbanaccess_net.net_edges["from_int"],
+                                    urbanaccess_net.net_edges["to_int"],
+                                    urbanaccess_net.net_edges[["weight"]])
+                                    #urbanaccess_net.net_edges[["weight","distance"]])
+
+            transit_ped_net_pdn.save_hdf5(transit_together_path + filen)
   
+    else:
+        print()
+        print('Integrated network file found! Skipped generation of a new one')
+        print()
     #eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio', 'Motos','Actividad','Año']
     #X = X.drop(columns=eliminar)
 
@@ -254,31 +298,6 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
     "transit_2223",
     "transit_2324",
     })
-
-    lista = ["transit_0001",# lista creada para poder encontrar el string transit en la hora pedida
-    "transit_0102",
-    "transit_0203", 
-    "transit_0304", 
-    "transit_0405", 
-    "transit_0506",
-    "transit_0607",
-    "transit_0708",
-    "transit_0809",
-    "transit_0910",
-    "transit_1011",
-    "transit_1112",
-    "transit_1213",
-    "transit_1314",
-    "transit_1415",
-    "transit_1516",
-    "transit_1617",
-    "transit_1718",
-    "transit_1819",
-    "transit_1920",
-    "transit_2021",
-    "transit_2122",
-    "transit_2223",
-    "transit_2324"]
 
     cont=0
     for k in lista:# este bucle elige de lista el transit que hayamos solititado, lo carga y lo asigna a el diccionario
