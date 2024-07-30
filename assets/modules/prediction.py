@@ -19,21 +19,24 @@ def estimate_emissions(df, GasKm_car, GasKm_bus, CO2lt):
         if df['Mode']=='Walk':
             return 0.0
         elif df['Mode']=='PT':
-            return (5-df['Rem_work'])*(GasKm_bus*CO2lt*df['distance']/1000/aver_N_passengers)*0.5 + (5-df['Rem_work'])*(35.1*10**-3*df['distance']/1000/aver_N_passengers)*0.5
+            return (5-df['Rem_work'])*(GasKm_bus*CO2lt*df['distance']/1000/aver_N_passengers)*0.8 + (5-df['Rem_work'])*(35.1*10**-3*df['distance']/1000/aver_N_passengers)*0.2
         else:
             return (5-df['Rem_work'])*GasKm_car*CO2lt*df['distance']/1000
         
 def calculate_indicator_d(df):
-        den = 1 + df['distance']/1000
-        temp = df['CO2_over_aver']*(1+1/den)
+        mask = df.index.to_list()
+        mask = [s for s in mask if "distance_stop" in s]
+        min_dist = df[mask].min()
+        den = 1 + min_dist/300 # at d=300 meters, temp = 1.5
+        temp = df['CO2_over_aver']*(1+1/den) 
         return temp         
 
 def calculate_indicator_n(df):
         mask = df.index.to_list()
         mask = [s for s in mask if "distance_stop" in s]
         thr = 500
-        n = (df[mask] < thr).values.sum()
-        return df['CO2_over_aver']*(1 + n)      
+        n = (df[mask] < thr).values.sum() # number of stops closer than thr
+        return df['CO2_over_aver']*(1 + n/3.)      
 
 
 def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
