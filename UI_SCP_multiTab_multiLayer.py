@@ -2684,6 +2684,7 @@ def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork,
    
     out = plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, StopsCoords, CowoFlags)
 
+
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
     ##return [out[0],out[1],out[2],out[3], out[4], scenario_json]
