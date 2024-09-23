@@ -39,6 +39,32 @@ def estimate_emissions(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio):
             return (5-df['Rem_work'])*co2km_car*df['distance']/1000
 
 
+def estimate_emissions_2(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio):
+        # weekly CO2 emissions in tons 
+        aver_N_passengers = 29
+        bus_train_ratio = bus_train_ratio/100.
+        n_rw = df['Rem_work']
+        n_cw = df['Coworking_days']
+
+        # Baseline result #######################################
+        if df['Mode_base']=='Walk':
+            CO2_base = 0.0
+        elif df['Mode_base']=='PT':
+            CO2_base =  (co2km_bus*df['distance_base']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance_base']/1000/aver_N_passengers)*(1-bus_train_ratio)
+        else:
+            CO2_base =  co2km_car*df['distance_base']/1000
+        #######################################################
+
+        # Result with interventions ################################
+        if df['Mode']=='Walk':
+            CO2_interv = 0.0
+        elif df['Mode']=='PT':
+            CO2_interv =  (co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance']/1000/aver_N_passengers)*(1-bus_train_ratio)
+        else:
+            CO2_interv =  co2km_car*df['distance']/1000
+        ########################################################
+
+        return (5 - n_rw - n_cw)*CO2_base + n_cw*CO2_interv
 
 def calculate_indicator_d(df):
         mask = df.index.to_list()
@@ -58,7 +84,7 @@ def calculate_indicator_n(df):
 
 
 #def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
-def predict(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio, model_dir):
+def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, model_dir):
     model_name = "rf_scp"  # El nombre del modelo que guardaste anteriormente
     #file_path = os.path.join("models", f'{model_name}.pkl')
     #with open(file_path, 'rb') as file:
@@ -68,35 +94,37 @@ def predict(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio, model_dir):
     gdf = gpd.GeoDataFrame(
             df.copy(), geometry=gpd.points_from_xy(df.O_long, df.O_lat), crs="EPSG:4326"
          )
+
+    gdf['distance_base'] = df_base['distance']
     #if baseline == 0:
     #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat'])) 
     #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking']))      
-    cols_to_drop = df.columns[df.columns.str.contains('distance_stop')]
+    #cols_to_drop = df.columns[df.columns.str.contains('distance_stop')]
     # Drop the columns containing the string "Email"
-    df.drop(cols_to_drop, axis=1, inplace=True)
-    df = df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'original_distance','Rem_work','Coworking'], errors='ignore') # errors='ignore' only for the Baseline scenario where we do not have the 'Coworking' column      
+    #df.drop(cols_to_drop, axis=1, inplace=True)
+    
+    #df = df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'original_distance','Rem_work','Coworking','Coworking_days'], errors='ignore') # errors='ignore' only for the Baseline scenario where we do not have the 'Coworking' column      
+    #df_base = df_base.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat'], errors='ignore') # errors='ignore' only for the Baseline scenario where we do not have the 'Coworking' column      
 
-    df.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/X_before_predict.csv', index=False)
+    ##df.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/X_before_predict.csv', index=False)
 
     df = df[['Hora_Ini_E', 'Per_hog', 'Turismos', 'Sexo', 'Edad', 'crnt_tur', 'drive_tt', 'distance', 'walk_tt', 'transit_tt', 'Tipo_familia']]
+    df_base = df_base[['Hora_Ini_E', 'Per_hog', 'Turismos', 'Sexo', 'Edad', 'crnt_tur', 'drive_tt', 'distance', 'walk_tt', 'transit_tt', 'Tipo_familia']]
 
-    print()
-    print('Final dataframe before predict:')
-    print(df.head(20))
-
-    print()
-    print()
     x = np.array(df) 
-
     y_pred = model.predict(x)
 
+    x_base = np.array(df_base) 
+    y_base_pred = model.predict(x_base)
 
     gdf['Mode'] = y_pred
+    gdf['Mode_base'] = y_base_pred
     #gdf['Mode'] = gdf['prediction'].apply(categorize)
     gdf['prediction'] = gdf['Mode'].apply(rev_categorize)
+    gdf['prediction_base'] = gdf['Mode_base'].apply(rev_categorize)
 
     df['prediction'] = y_pred
-    df.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/X_after_predict.csv', index=False)
+    #df.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/X_after_predict.csv', index=False)
     print()
     print('Final dataframe before after predict:')
     print(gdf.head(60))
@@ -110,7 +138,8 @@ def predict(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio, model_dir):
     #co2km_train = 0.3
 
     #gdf['CO2']  = gdf.apply(estimate_emissions, args=(gkm_car, gkm_bus, co2lt), axis=1)
-    gdf['CO2']  = gdf.apply(estimate_emissions, args=(co2km_car, co2km_bus, co2km_train, bus_train_ratio), axis=1)
+    #gdf['CO2']  = gdf.apply(estimate_emissions, args=(co2km_car, co2km_bus, co2km_train, bus_train_ratio), axis=1)
+    gdf['CO2']  = gdf.apply(estimate_emissions_2, args=(co2km_car, co2km_bus, co2km_train, bus_train_ratio), axis=1)
     #CO2_aver_europe = 5.37 # aver. ton per person in 2021
     CO2_target = 2.3 * 0.4 # target CO2 ton per person in 2030 * 0.4 (assumes that 40% is associated to transportation)   
     n_weeks = 52 # weeks in one year
@@ -124,5 +153,7 @@ def predict(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio, model_dir):
     gdf['weighted_d']  = gdf.apply(calculate_indicator_d, axis=1)
     #gdf['weighted_n']  = gdf.apply(calculate_indicator_n, axis=1)
     gdf['n_close_stops']  = gdf.apply(calculate_indicator_n, axis=1)
+
+    gdf.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/Data_after_predict.csv', index=False)
 
     return gdf
