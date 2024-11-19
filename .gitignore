@@ -9,3 +9,5 @@ assets/modules/__pycache__/calcroutes_module.cpython-36.pyc
 assets/modules/__pycache__/find_stops_module.cpython-36.pyc
 assets/data/INPUT_stops_example.csv
 assets/modules/__pycache__/calcroutes_module.cpython-36.pyc
+login_version/test_noLogin.py
+assets/data/Data_after_predict.csv
