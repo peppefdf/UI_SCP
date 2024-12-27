@@ -77,11 +77,19 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
     remove_stops_outsidebbox = True
     append_definitions = True
 
+    """
     #filen = 'transit_ped_net.h5'
     gtfsfeed_path = root_dir + MCM_dir + 'GTFS_feeds/'
     networks_path = root_dir + 'data/input_data_MCM/networks/'
     transit_together_path = root_dir + 'data/input_data_MCM/transit_together_24h/'
     towns_path = root_dir + 'data/input_data_MCM/'
+    """
+    
+    gtfsfeed_path = 'GTFS_feeds/'
+    networks_path = root_dir + 'assets/data/input_data_MCM/networks/'
+    transit_together_path = root_dir + 'assets/data/input_data_MCM/transit_together_24h/'
+    towns_path = root_dir + 'assets/data/input_data_MCM/'
+
 
     # Definir los valores dados
     timeranges = [
@@ -280,7 +288,9 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
         print(k)
         print(root_dir + f'networks/{k}_net.h5')
         #networks[k] = pdn.network.Network.from_hdf5(f'../input_data/networks/{k}_net.h5')
-        networks[k] = pdn.network.Network.from_hdf5(root_dir + 'data/input_data_MCM/' + f'networks/{k}_net.h5')
+        #networks[k] = pdn.network.Network.from_hdf5(root_dir + 'data/input_data_MCM/' + f'networks/{k}_net.h5')
+        networks[k] = pdn.network.Network.from_hdf5(root_dir + 'assets/data/input_data_MCM/' + f'networks/{k}_net.h5')
+
 
     # # TRANSIT
     transit = dict.fromkeys({
@@ -316,7 +326,9 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
         if hour==cont:
             print(k)
             #transit[k] = pdn.network.Network.from_hdf5(f'../input_data/transit_together_24h/{k}.h5')
-            transit[k] = pdn.network.Network.from_hdf5(root_dir + 'data/input_data_MCM/' + f'/transit_together_24h/{k}.h5')
+            #transit[k] = pdn.network.Network.from_hdf5(root_dir + 'data/input_data_MCM/' + f'/transit_together_24h/{k}.h5')
+            transit[k] = pdn.network.Network.from_hdf5(root_dir + 'assets/data/input_data_MCM/' + f'/transit_together_24h/{k}.h5')
+
             break
         else:
             cont=cont+1
@@ -468,7 +480,8 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
 
 
     #bbox = [min(X.O_lat), min(X.O_long), max(X.O_lat), max(X.O_long)]
-    stops_file = root_dir +'data/all_bus_stops.csv'
+    #stops_file = root_dir +'data/all_bus_stops.csv'
+    stops_file = root_dir +'assets/data/all_bus_stops.csv'
     stops_df = pd.read_csv(stops_file, encoding='latin-1')
     #stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()
 
