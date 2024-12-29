@@ -36,3 +36,6 @@ app/components/__pycache__/generate_GTFS_module.cpython-311.pyc
 app/components/__pycache__/find_stops_module.cpython-311.pyc
 app/components/__pycache__/calcroutes_module.cpython-311.pyc
 app/callbacks/__pycache__/callbacks.cpython-311.pyc
+cache/cache.db
+cache/cache.db-shm
+cache/cache.db-wal
